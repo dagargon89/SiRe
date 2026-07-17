@@ -206,7 +206,7 @@ export interface ApiClient {
   revocarAsignacion(id: number, motivo: string): Promise<Asignacion>;
   transferir(data: { activo_id: number; nuevo_usuario_id: number; notas?: string }): Promise<Asignacion>;
   // préstamos
-  listarPrestamos(estado?: EstadoPrestamo): Promise<Paginado<Prestamo>>;
+  listarPrestamos(estado?: EstadoPrestamo, page?: number): Promise<Paginado<Prestamo>>;
   prestar(data: {
     activo_id: number; prestatario_id: number; devolucion_esperada: string;
     condicion_prestamo: Exclude<CondicionActivo, 'baja'>; notas?: string;

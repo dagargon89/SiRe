@@ -3,6 +3,7 @@ import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { Field } from '../components/Field'
 import { Modal } from '../components/Modal'
+import { Pagination } from '../components/Pagination'
 import { ActivaBadge } from '../components/Badge'
 import { useAuth } from '../lib/auth'
 import { api } from '../lib/apiClient'
@@ -21,11 +22,13 @@ export function Usuarios() {
   const { perfil } = useAuth()
   const [page, setPage] = useState(1)
   const q = useUsuarios(page)
+  const orgs = useOrganizaciones()
   const cambiarRol = useCambiarRol()
   const desactivar = useDesactivarUsuario()
   const [nuevo, setNuevo] = useState(false)
 
   const yo = perfil?.id
+  const nombreOrg = (id: number) => orgs.data?.find((o) => o.id === id)?.nombre ?? '—'
 
   return (
     <div>
@@ -50,6 +53,7 @@ export function Usuarios() {
               <tr className="text-left text-ink-muted border-b border-border">
                 <th className="px-4 py-3 font-medium">Nombre</th>
                 <th className="px-4 py-3 font-medium">Correo</th>
+                <th className="px-4 py-3 font-medium max-md:hidden">Organización</th>
                 <th className="px-4 py-3 font-medium">Rol</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
                 <th className="px-4 py-3 font-medium text-right">Acciones</th>
@@ -62,6 +66,7 @@ export function Usuarios() {
                   <tr key={u.id} className="border-b border-border last:border-0 hover:bg-surface-2">
                     <td className="px-4 py-3">{u.nombre}</td>
                     <td className="px-4 py-3 text-ink-muted">{u.email}</td>
+                    <td className="px-4 py-3 max-md:hidden text-ink-muted">{nombreOrg(u.organizacion_id)}</td>
                     <td className="px-4 py-3">
                       <select
                         aria-label={`Rol de ${u.nombre}`}
@@ -108,20 +113,8 @@ export function Usuarios() {
         </Card>
       )}
 
-      {q.data && q.data.meta.total > q.data.meta.per_page && (
-        <div className="flex items-center gap-3 justify-end mt-4 text-sm">
-          <Button variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-            Anterior
-          </Button>
-          <span className="text-ink-muted">Página {page}</span>
-          <Button
-            variant="secondary"
-            disabled={page * q.data.meta.per_page >= q.data.meta.total}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Siguiente
-          </Button>
-        </div>
+      {q.data && (
+        <Pagination page={page} perPage={q.data.meta.per_page} total={q.data.meta.total} onPage={setPage} />
       )}
 
       {nuevo && <FormularioUsuario onCerrar={() => setNuevo(false)} />}

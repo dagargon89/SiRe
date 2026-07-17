@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { Pagination } from '../components/Pagination'
 import { EstadoActivoBadge } from '../components/Badge'
 import { useAuth } from '../lib/auth'
 import { useActivos, useOrganizaciones, useCategorias } from '../lib/queries'
@@ -18,6 +19,10 @@ export function Activos() {
   const cats = useCategorias()
 
   const set = (patch: Partial<FiltrosActivos>) => setFiltros((f) => ({ ...f, ...patch, page: 1 }))
+  const setPage = (p: number) => setFiltros((f) => ({ ...f, page: p }))
+
+  const nombreCat = (id: number) => cats.data?.find((c) => c.id === id)?.nombre ?? '—'
+  const nombreOrg = (id: number) => orgs.data?.find((o) => o.id === id)?.nombre ?? '—'
 
   return (
     <div>
@@ -59,6 +64,8 @@ export function Activos() {
               <tr className="text-left text-ink-muted border-b border-border">
                 <th className="px-4 py-3 font-medium">Código</th>
                 <th className="px-4 py-3 font-medium">Nombre</th>
+                <th className="px-4 py-3 font-medium max-md:hidden">Categoría</th>
+                <th className="px-4 py-3 font-medium max-md:hidden">Organización</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
               </tr>
             </thead>
@@ -75,6 +82,8 @@ export function Activos() {
                     </Link>
                   </td>
                   <td className="px-4 py-3">{a.nombre}</td>
+                  <td className="px-4 py-3 max-md:hidden text-ink-muted">{nombreCat(a.categoria_id)}</td>
+                  <td className="px-4 py-3 max-md:hidden text-ink-muted">{nombreOrg(a.organizacion_id)}</td>
                   <td className="px-4 py-3">
                     <EstadoActivoBadge estado={a.estado} />
                   </td>
@@ -83,6 +92,15 @@ export function Activos() {
             </tbody>
           </table>
         </Card>
+      )}
+
+      {q.data && (
+        <Pagination
+          page={filtros.page ?? 1}
+          perPage={q.data.meta.per_page}
+          total={q.data.meta.total}
+          onPage={setPage}
+        />
       )}
     </div>
   )

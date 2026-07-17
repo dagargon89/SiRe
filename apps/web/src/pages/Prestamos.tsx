@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { Modal } from '../components/Modal'
+import { Pagination } from '../components/Pagination'
 import { EstadoPrestamoBadge } from '../components/Badge'
 import { useAuth } from '../lib/auth'
 import { useToast } from '../lib/toast'
@@ -19,8 +20,14 @@ const FILTROS: { value: EstadoPrestamo | ''; label: string }[] = [
 export function Prestamos() {
   const { perfil } = useAuth()
   const [estado, setEstado] = useState<EstadoPrestamo | ''>('')
-  const q = usePrestamos(estado || undefined)
+  const [page, setPage] = useState(1)
+  const q = usePrestamos(estado || undefined, page)
   const [devolviendo, setDevolviendo] = useState<Prestamo | null>(null)
+
+  function cambiarFiltro(e: EstadoPrestamo | '') {
+    setEstado(e)
+    setPage(1)
+  }
 
   const puedeDevolver = perfil?.rol === 'administrador' || perfil?.rol === 'custodio'
 
@@ -32,7 +39,7 @@ export function Prestamos() {
         {FILTROS.map((f) => (
           <button
             key={f.value}
-            onClick={() => setEstado(f.value)}
+            onClick={() => cambiarFiltro(f.value)}
             className={
               'px-3 py-1.5 rounded-md text-sm border ' +
               (estado === f.value ? 'bg-primary text-primary-contrast border-primary' : 'border-border text-ink hover:bg-surface-2')
@@ -90,6 +97,10 @@ export function Prestamos() {
             </tbody>
           </table>
         </Card>
+      )}
+
+      {q.data && (
+        <Pagination page={page} perPage={q.data.meta.per_page} total={q.data.meta.total} onPage={setPage} />
       )}
 
       {devolviendo && (

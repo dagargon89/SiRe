@@ -167,8 +167,8 @@ export function useDashboard() {
 }
 
 // ─── Préstamos ────────────────────────────────────────────────────
-export function usePrestamos(estado?: EstadoPrestamo) {
-  return useQuery({ queryKey: ['prestamos', estado], queryFn: () => api.listarPrestamos(estado) })
+export function usePrestamos(estado?: EstadoPrestamo, page = 1) {
+  return useQuery({ queryKey: ['prestamos', estado, page], queryFn: () => api.listarPrestamos(estado, page) })
 }
 
 export function usePrestar() {
