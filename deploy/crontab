@@ -1,0 +1,4 @@
+# SiRe — cron de alertas de préstamos (TZ America/Ciudad_Juarez).
+# Ejecuta todos los días a las 07:00. Ajusta la ruta de PHP y del proyecto.
+CRON_TZ=America/Ciudad_Juarez
+0 7 * * * www-data cd /var/www/sire/apps/api && /usr/bin/php spark resguardos:alertas-prestamos >> /var/log/sire-alertas.log 2>&1
