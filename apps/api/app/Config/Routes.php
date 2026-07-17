@@ -32,6 +32,17 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     $routes->put('categorias/(:num)', 'Categorias::update/$1', $admin);
     $routes->patch('categorias/(:num)/estado', 'Categorias::estado/$1', $admin);
 
+    // Activos
+    $routes->get('activos', 'Activos::index', $auth);
+    $routes->post('activos', 'Activos::create', $admin);
+    $routes->get('activos/(:num)', 'Activos::show/$1', $auth);
+    $routes->put('activos/(:num)', 'Activos::update/$1', $admin);
+    $routes->patch('activos/(:num)/baja', 'Activos::baja/$1', $admin);
+    $routes->patch('activos/(:num)/mantenimiento', 'Activos::mantenimiento/$1', $admin);
+    $routes->get('activos/(:num)/etiqueta', 'Activos::etiqueta/$1', $admin);
+    $routes->post('activos/(:num)/factura', 'Activos::subirFactura/$1', $admin);
+    $routes->get('activos/(:num)/factura', 'Activos::urlFactura/$1', ['filter' => ['auth', 'role:administrador,auditor', 'throttle']]);
+
     // Usuarios
     $routes->get('usuarios', 'Usuarios::index', $admin);
     $routes->post('usuarios', 'Usuarios::create', $admin);

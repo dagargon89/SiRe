@@ -66,7 +66,8 @@ class Filters extends BaseFilters
         'after' => [
             'pagecache',   // Web Page Caching
             'performance', // Performance Metrics
-            'toolbar',     // Debug Toolbar
+            // 'toolbar' desactivado: es una API REST (JSON/binario). El toolbar
+            // negocia por Accept y corrompería respuestas no-HTML (p.ej. PDF).
         ],
     ];
 

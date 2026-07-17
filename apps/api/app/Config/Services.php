@@ -7,6 +7,8 @@ use App\Auth\FirebaseAdmin;
 use App\Auth\FirebaseTokenVerifier;
 use App\Auth\KreaitFirebaseAdmin;
 use App\Auth\TokenVerifier;
+use App\Storage\ArchivoStorage;
+use App\Storage\FirebaseStorage;
 use CodeIgniter\Config\BaseService;
 use Kreait\Firebase\Contract\Auth as FirebaseAuth;
 use Kreait\Firebase\Factory;
@@ -27,13 +29,9 @@ class Services extends BaseService
         return new CurrentUser();
     }
 
-    /** Firebase Admin Auth (kreait): verificación de token, revocación, alta de usuarios. */
-    public static function firebaseAuth($getShared = true): FirebaseAuth
+    /** Construye la fábrica de kreait con service account, projectId y caché JWKS en Redis. */
+    private static function firebaseFactory(): Factory
     {
-        if ($getShared) {
-            return static::getSharedInstance('firebaseAuth');
-        }
-
         $credentials = (string) (env('firebase.credentials') ?? '');
         $projectId   = (string) (env('firebase.projectId') ?? '');
 
@@ -55,12 +53,34 @@ class Services extends BaseService
         }
 
         // Caché PSR-6 en Redis para las claves públicas de Google (JWKS).
-        $host    = (string) (env('redis.host') ?? '127.0.0.1');
-        $port    = (int) (env('redis.port') ?? 6379);
-        $redis   = RedisAdapter::createConnection("redis://{$host}:{$port}");
-        $factory = $factory->withVerifierCache(new RedisAdapter($redis, 'sire_jwks'));
+        $host  = (string) (env('redis.host') ?? '127.0.0.1');
+        $port  = (int) (env('redis.port') ?? 6379);
+        $redis = RedisAdapter::createConnection("redis://{$host}:{$port}");
 
-        return $factory->createAuth();
+        return $factory->withVerifierCache(new RedisAdapter($redis, 'sire_jwks'));
+    }
+
+    /** Firebase Admin Auth (kreait): verificación de token, revocación, alta de usuarios. */
+    public static function firebaseAuth($getShared = true): FirebaseAuth
+    {
+        if ($getShared) {
+            return static::getSharedInstance('firebaseAuth');
+        }
+
+        return static::firebaseFactory()->createAuth();
+    }
+
+    /** Almacenamiento de archivos (Firebase Storage). */
+    public static function archivoStorage($getShared = true): ArchivoStorage
+    {
+        if ($getShared) {
+            return static::getSharedInstance('archivoStorage');
+        }
+
+        $bucket = (string) (env('firebase.storageBucket') ?? '');
+        $storage = static::firebaseFactory()->createStorage();
+
+        return new FirebaseStorage($storage->getBucket($bucket !== '' ? $bucket : null));
     }
 
     /** Verificador de ID token de Firebase (envuelve firebaseAuth para poder mockear). */

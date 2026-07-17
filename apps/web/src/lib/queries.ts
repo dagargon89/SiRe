@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './apiClient'
-import type { Rol } from './api'
+import type { Activo, FiltrosActivos, Rol } from './api'
 
 // ─── Organizaciones ───────────────────────────────────────────────
 export function useOrganizaciones() {
@@ -78,5 +78,54 @@ export function useDesactivarUsuario() {
   return useMutation({
     mutationFn: (id: number) => api.desactivarUsuario(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['usuarios'] }),
+  })
+}
+
+// ─── Activos ──────────────────────────────────────────────────────
+export function useActivos(filtros: FiltrosActivos) {
+  return useQuery({
+    queryKey: ['activos', filtros],
+    queryFn: () => api.listarActivos(filtros),
+  })
+}
+
+export function useActivo(id: number) {
+  return useQuery({ queryKey: ['activo', id], queryFn: () => api.obtenerActivo(id) })
+}
+
+type NuevoActivo = Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>
+
+export function useGuardarActivo() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id?: number; datos: NuevoActivo }) =>
+      v.id ? api.editarActivo(v.id, v.datos) : api.crearActivo(v.datos),
+    onSuccess: (_r, v) => {
+      qc.invalidateQueries({ queryKey: ['activos'] })
+      if (v.id) qc.invalidateQueries({ queryKey: ['activo', v.id] })
+    },
+  })
+}
+
+export function useDarDeBaja() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: number; motivo: string }) => api.darDeBaja(v.id, v.motivo),
+    onSuccess: (_r, v) => {
+      qc.invalidateQueries({ queryKey: ['activos'] })
+      qc.invalidateQueries({ queryKey: ['activo', v.id] })
+    },
+  })
+}
+
+export function useMantenimiento() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: number; enMantenimiento: boolean }) =>
+      api.cambiarMantenimiento(v.id, v.enMantenimiento),
+    onSuccess: (_r, v) => {
+      qc.invalidateQueries({ queryKey: ['activos'] })
+      qc.invalidateQueries({ queryKey: ['activo', v.id] })
+    },
   })
 }
