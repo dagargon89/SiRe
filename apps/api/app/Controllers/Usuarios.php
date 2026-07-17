@@ -27,17 +27,23 @@ class Usuarios extends ApiController
             'nombre'          => $u['nombre'],
             'email'           => $u['email'],
             'rol'             => $u['rol'],
-            'organizacion_id' => (int) $u['organizacion_id'],
+            'organizacion_id' => $u['organizacion_id'] !== null ? (int) $u['organizacion_id'] : null,
             'is_active'       => (bool) $u['is_active'],
+            'estado'          => $u['estado'],
         ];
     }
 
-    /** GET /usuarios?page= — administrador. */
+    /** GET /usuarios?page=&estado= — administrador. */
     public function index(): ResponseInterface
     {
         $model   = $this->model();
         $perPage = 25;
         $page    = max(1, (int) ($this->request->getGet('page') ?? 1));
+
+        $estado = $this->request->getGet('estado');
+        if (in_array($estado, ['pendiente', 'aprobado', 'rechazado'], true)) {
+            $model->where('estado', $estado);
+        }
 
         $rows  = $model->orderBy('nombre', 'ASC')->paginate($perPage, 'default', $page);
         $total = $model->pager->getTotal('default');
@@ -125,6 +131,51 @@ class Usuarios extends ApiController
         }
 
         $model->update($id, ['rol' => $rol]);
+
+        return $this->ok($this->presentar($model->find($id)));
+    }
+
+    /** PATCH /usuarios/{id}/aprobar — administrador. Asigna rol + organización. */
+    public function aprobar(int $id): ResponseInterface
+    {
+        $model = $this->model();
+        $u     = $model->find($id);
+        if ($u === null) {
+            return $this->error(404, 'no_existe', 'Usuario no encontrado.');
+        }
+
+        $data = $this->body();
+        $rol  = (string) ($data['rol'] ?? '');
+        if (! in_array($rol, ['administrador', 'custodio', 'auditor'], true)) {
+            return $this->error(422, 'rol_invalido', 'Rol no válido.');
+        }
+        $orgId = (int) ($data['organizacion_id'] ?? 0);
+        if ($model->db->table('organizaciones')->where('id', $orgId)->countAllResults() === 0) {
+            return $this->error(422, 'organizacion_invalida', 'Organización no válida.');
+        }
+
+        $model->update($id, [
+            'estado'          => 'aprobado',
+            'rol'             => $rol,
+            'organizacion_id' => $orgId,
+            'is_active'       => 1,
+        ]);
+
+        return $this->ok($this->presentar($model->find($id)));
+    }
+
+    /** PATCH /usuarios/{id}/rechazar — administrador. */
+    public function rechazar(int $id): ResponseInterface
+    {
+        if ($id === (int) $this->actor()['id']) {
+            return $this->error(403, 'no_auto_rechazo', 'No puedes rechazar tu propia cuenta.');
+        }
+        $model = $this->model();
+        if ($model->find($id) === null) {
+            return $this->error(404, 'no_existe', 'Usuario no encontrado.');
+        }
+
+        $model->update($id, ['estado' => 'rechazado', 'is_active' => 0]);
 
         return $this->ok($this->presentar($model->find($id)));
     }

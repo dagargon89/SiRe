@@ -13,12 +13,14 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     // Público
     $routes->get('health', 'Health::index');
 
-    // Filtros reutilizables
-    $auth  = ['filter' => ['auth', 'throttle']];
-    $admin = ['filter' => ['auth', 'role:administrador', 'throttle']];
+    // Onboarding: token válido, sin exigir aprobación (auto-provisiona pendiente).
+    $onboarding = ['filter' => ['auth', 'throttle']];
+    // Rutas de negocio: requieren perfil APROBADO.
+    $auth  = ['filter' => ['auth', 'aprobado', 'throttle']];
+    $admin = ['filter' => ['auth', 'aprobado', 'role:administrador', 'throttle']];
 
-    // Sesión
-    $routes->get('me', 'Me::index', $auth);
+    // Sesión / onboarding
+    $routes->get('me', 'Me::index', $onboarding);
 
     // Organizaciones
     $routes->get('organizaciones', 'Organizaciones::index', $auth);
@@ -41,7 +43,7 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     $routes->patch('activos/(:num)/mantenimiento', 'Activos::mantenimiento/$1', $admin);
     $routes->get('activos/(:num)/etiqueta', 'Activos::etiqueta/$1', $admin);
     $routes->post('activos/(:num)/factura', 'Activos::subirFactura/$1', $admin);
-    $routes->get('activos/(:num)/factura', 'Activos::urlFactura/$1', ['filter' => ['auth', 'role:administrador,auditor', 'throttle']]);
+    $routes->get('activos/(:num)/factura', 'Activos::urlFactura/$1', ['filter' => ['auth', 'aprobado', 'role:administrador,auditor', 'throttle']]);
 
     // Usuarios
     $routes->get('usuarios', 'Usuarios::index', $admin);
@@ -50,6 +52,8 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     $routes->get('usuarios/(:num)/carta', 'Usuarios::carta/$1', $auth); // PII: admin o titular (dentro)
     $routes->put('usuarios/(:num)', 'Usuarios::update/$1', $admin);
     $routes->patch('usuarios/(:num)/rol', 'Usuarios::rol/$1', $admin);
+    $routes->patch('usuarios/(:num)/aprobar', 'Usuarios::aprobar/$1', $admin);
+    $routes->patch('usuarios/(:num)/rechazar', 'Usuarios::rechazar/$1', $admin);
     $routes->patch('usuarios/(:num)/desactivar', 'Usuarios::desactivar/$1', $admin);
 
     // Asignaciones (resguardos)
@@ -60,10 +64,10 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     // Préstamos
     $routes->get('prestamos', 'Prestamos::index', $auth);
     $routes->post('prestamos', 'Prestamos::create', $admin);
-    $routes->patch('prestamos/(:num)/devolver', 'Prestamos::devolver/$1', ['filter' => ['auth', 'role:administrador,custodio', 'throttle']]);
+    $routes->patch('prestamos/(:num)/devolver', 'Prestamos::devolver/$1', ['filter' => ['auth', 'aprobado', 'role:administrador,custodio', 'throttle']]);
 
     // Dashboard y reportes
-    $adminAuditor = ['filter' => ['auth', 'role:administrador,auditor', 'throttle']];
+    $adminAuditor = ['filter' => ['auth', 'aprobado', 'role:administrador,auditor', 'throttle']];
     $routes->get('dashboard', 'Dashboard::index', $auth);
     $routes->get('reportes/inventario', 'Reportes::inventario', $adminAuditor);
     $routes->get('reportes/movimientos', 'Reportes::movimientos', $adminAuditor);

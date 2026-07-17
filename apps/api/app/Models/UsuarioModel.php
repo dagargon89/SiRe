@@ -15,24 +15,20 @@ class UsuarioModel extends Model
     protected $useTimestamps    = false; // los timestamps los maneja MySQL (DEFAULT/ON UPDATE)
 
     protected $allowedFields = [
-        'firebase_uid', 'organizacion_id', 'nombre', 'email', 'rol', 'is_active', 'creado_por',
+        'firebase_uid', 'organizacion_id', 'nombre', 'email', 'rol', 'is_active', 'estado', 'creado_por',
     ];
 
     protected $validationRules = [
         'firebase_uid'    => 'required|max_length[128]',
-        'organizacion_id' => 'required|is_natural_no_zero',
+        'organizacion_id' => 'permit_empty|is_natural_no_zero', // null en auto-registro hasta aprobar
         'nombre'          => 'required|max_length[150]',
         'email'           => 'required|valid_email|max_length[180]',
         'rol'             => 'required|in_list[administrador,custodio,auditor]',
     ];
 
-    /** Devuelve el usuario ACTIVO ligado a un firebase_uid, o null. */
-    public function findActiveByFirebaseUid(string $uid): ?array
+    /** Devuelve el usuario ligado a un firebase_uid (cualquier estado), o null. */
+    public function findByFirebaseUid(string $uid): ?array
     {
-        $row = $this->where('firebase_uid', $uid)
-            ->where('is_active', 1)
-            ->first();
-
-        return $row ?: null;
+        return $this->where('firebase_uid', $uid)->first() ?: null;
     }
 }

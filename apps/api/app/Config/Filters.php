@@ -2,6 +2,7 @@
 
 namespace Config;
 
+use App\Filters\AprobadoFilter;
 use App\Filters\CorsFilter;
 use App\Filters\FirebaseAuthFilter;
 use App\Filters\RateLimitFilter;
@@ -40,6 +41,7 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         // SiRe
         'auth'          => FirebaseAuthFilter::class,
+        'aprobado'      => AprobadoFilter::class,
         'role'          => RoleFilter::class,
         'apicors'       => CorsFilter::class,
         'throttle'      => RateLimitFilter::class,

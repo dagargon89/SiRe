@@ -38,6 +38,6 @@ describe('mensajeError', () => {
   })
 
   it('usa mensaje genérico para errores desconocidos', () => {
-    expect(mensajeError(new Error('otro'))).toBe('No se pudo iniciar sesión. Intenta de nuevo.')
+    expect(mensajeError(new Error('otro'))).toBe('No se pudo completar la operación. Intenta de nuevo.')
   })
 })

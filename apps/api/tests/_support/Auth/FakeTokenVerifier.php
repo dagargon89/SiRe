@@ -17,9 +17,9 @@ final class FakeTokenVerifier implements TokenVerifier
     /** @var array<string, VerifiedClaims> */
     private array $valid = [];
 
-    public function conToken(string $idToken, string $uid, ?string $email = null, ?int $authTime = null): self
+    public function conToken(string $idToken, string $uid, ?string $email = null, ?int $authTime = null, ?string $nombre = null): self
     {
-        $this->valid[$idToken] = new VerifiedClaims($uid, $email, $authTime);
+        $this->valid[$idToken] = new VerifiedClaims($uid, $email, $authTime, $nombre);
 
         return $this;
     }

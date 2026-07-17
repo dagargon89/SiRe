@@ -6,10 +6,14 @@ import {
   type ReactNode,
 } from 'react'
 import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onIdTokenChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
+  updateProfile,
   type User,
 } from 'firebase/auth'
 import { auth } from './firebase'
@@ -21,6 +25,8 @@ interface AuthState {
   perfil: Usuario | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginGoogle: () => Promise<void>
+  signup: (nombre: string, email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
 }
@@ -59,6 +65,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // El perfil se carga en onIdTokenChanged.
   }
 
+  async function loginGoogle(): Promise<void> {
+    await signInWithPopup(auth, new GoogleAuthProvider())
+    // El perfil (posiblemente pendiente) se carga en onIdTokenChanged.
+  }
+
+  async function signup(nombre: string, email: string, password: string): Promise<void> {
+    const cred = await createUserWithEmailAndPassword(auth, email, password)
+    await updateProfile(cred.user, { displayName: nombre })
+    // Refresca el token para que el claim 'name' llegue al backend.
+    await cred.user.getIdToken(true)
+    // onIdTokenChanged provisiona el perfil pendiente vía /me.
+  }
+
   async function logout(): Promise<void> {
     await signOut(auth)
   }
@@ -68,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ firebaseUser, perfil, loading, login, logout, resetPassword }}>
+    <AuthContext.Provider value={{ firebaseUser, perfil, loading, login, loginGoogle, signup, logout, resetPassword }}>
       {children}
     </AuthContext.Provider>
   )

@@ -33,6 +33,7 @@ final class Sprint5DashboardTest extends CIUnitTestCase
     {
         parent::setUp();
         $this->resetServices();
+        cache()->clean(); // evita acumulación del throttler entre tests
         DashboardService::invalidarCache(); // la caché (MockCache) persiste entre tests
         Services::injectMock('currentUser', new CurrentUser());
         $this->verifier = new FakeTokenVerifier();

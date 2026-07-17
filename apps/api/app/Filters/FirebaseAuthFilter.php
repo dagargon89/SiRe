@@ -46,14 +46,18 @@ class FirebaseAuthFilter implements FilterInterface
             return ApiError::make($response, 401, 'token_invalido', 'El token no es válido o expiró.');
         }
 
-        $usuario = (new UsuarioModel())->findActiveByFirebaseUid($claims->uid);
-        if ($usuario === null) {
-            return ApiError::make($response, 403, 'cuenta_inactiva', 'La cuenta no está activa o no existe.');
-        }
-
+        // El token es válido: guardamos los claims y resolvemos el perfil local
+        // (cualquier estado). NO se rechaza aquí a pendientes/sin-perfil: eso lo
+        // hace el filtro 'aprobado' en las rutas protegidas. Las rutas de
+        // onboarding (/me) solo usan 'auth' y permiten auto-provisionar.
         /** @var CurrentUser $current */
         $current = service('currentUser');
-        $current->set($usuario);
+        $current->setClaims($claims);
+
+        $usuario = (new UsuarioModel())->findByFirebaseUid($claims->uid);
+        if ($usuario !== null) {
+            $current->set($usuario);
+        }
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)

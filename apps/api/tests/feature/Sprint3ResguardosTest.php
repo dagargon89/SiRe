@@ -34,6 +34,7 @@ final class Sprint3ResguardosTest extends CIUnitTestCase
     {
         parent::setUp();
         $this->resetServices();
+        cache()->clean(); // evita acumulación del throttler entre tests
         Services::injectMock('currentUser', new CurrentUser());
         $this->verifier = new FakeTokenVerifier();
         Services::injectMock('tokenVerifier', $this->verifier);

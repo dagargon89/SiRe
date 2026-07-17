@@ -70,7 +70,8 @@ SPA React servida estáticamente que consume una API REST de CodeIgniter 4. El c
 | Stack | React + Vite + CI4 + MySQL + Redis | Estándar de la organización; sustituye Laravel/Livewire (ADR-001) |
 | Modelo de acceso | Datos compartidos por el grupo; organización = origen, no silo | ADR-003, definición §1/§7.1 |
 | Roles | Administrador · Custodio (login limitado) · Auditor | ADR-003 (fusión de los dos admins) |
-| Autenticación | Firebase Auth (IdP único); CI4 verifica ID token | ADR-002; reglas 8–10 de la definición |
+| Autenticación | Firebase Auth (email/password + Google); CI4 verifica ID token | ADR-002; reglas 8–10 de la definición |
+| Onboarding | **Auto-registro con aprobación**: cualquiera se registra (email/password o Google) y queda `pendiente` hasta que un admin le asigna rol+organización o lo rechaza. **Revierte RF-04** (decisión de producto David, 2026-07-17) | `estado` en `usuarios`; filtro `aprobado` |
 | Desactivar bloquea | Revoca refresh tokens en Firebase + perfil inactivo en MySQL (atómico) | ADR-002, regla 8 |
 | Identificación del activo | Código físico `CAT-ORG-###` correlativo + QR con deep-link | Definición §6.4; a prueba de concurrencia |
 | Categorías | Entidad gestionable con clave de 3 letras | Definición §6.3 |

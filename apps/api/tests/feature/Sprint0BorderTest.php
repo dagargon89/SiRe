@@ -31,6 +31,7 @@ final class Sprint0BorderTest extends CIUnitTestCase
         // Servicios frescos por test: el `response` es compartido y arrastraría
         // cabeceras (p.ej. ACAO) de un caso a otro.
         $this->resetServices();
+        cache()->clean(); // evita acumulación del throttler entre tests
         Services::injectMock('currentUser', new CurrentUser());
     }
 
@@ -75,14 +76,21 @@ final class Sprint0BorderTest extends CIUnitTestCase
         $result->assertJSONFragment(['error' => 'token_invalido']);
     }
 
-    public function testMeConUsuarioInexistenteOInactivoDevuelve403(): void
+    public function testMeSinPerfilAutoProvisionaPendiente(): void
     {
-        $fake = (new FakeTokenVerifier())->conToken('tok-fantasma', 'uid-sin-perfil');
+        $fake = (new FakeTokenVerifier())->conToken('tok-nuevo', 'uid-nuevo', 'nuevo@demo.test', null, 'Nuevo Usuario');
         Services::injectMock('tokenVerifier', $fake);
 
-        $result = $this->withHeaders(['Authorization' => 'Bearer tok-fantasma'])->get('api/v1/me');
-        $result->assertStatus(403);
-        $result->assertJSONFragment(['error' => 'cuenta_inactiva']);
+        // /me con token válido pero sin perfil → auto-provisiona 'pendiente' (200).
+        $result = $this->withHeaders(['Authorization' => 'Bearer tok-nuevo'])->get('api/v1/me');
+        $result->assertStatus(200);
+        $result->assertJSONFragment(['estado' => 'pendiente', 'email' => 'nuevo@demo.test']);
+        $this->seeInDatabase('usuarios', ['firebase_uid' => 'uid-nuevo', 'estado' => 'pendiente']);
+
+        // Pero una ruta de negocio lo rechaza hasta ser aprobado.
+        $ruta = $this->withHeaders(['Authorization' => 'Bearer tok-nuevo'])->get('api/v1/organizaciones');
+        $ruta->assertStatus(403);
+        $ruta->assertJSONFragment(['error' => 'pendiente_aprobacion']);
     }
 
     public function testMeConUsuarioActivoDevuelve200(): void

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './lib/auth'
 import { Login } from './pages/Login'
+import { EstadoCuenta } from './pages/EstadoCuenta'
 import { AppShell } from './layout/AppShell'
 import { Organizaciones } from './pages/Organizaciones'
 import { Categorias } from './pages/Categorias'
@@ -24,6 +25,12 @@ function App() {
 
   if (!firebaseUser || !perfil) {
     return <Login />
+  }
+
+  // Cuentas no aprobadas (pendiente/rechazada/inactiva) → pantalla de estado.
+  const aprobado = (perfil.estado ?? 'aprobado') === 'aprobado' && perfil.is_active
+  if (!aprobado) {
+    return <EstadoCuenta />
   }
 
   const esAdmin = perfil.rol === 'administrador'

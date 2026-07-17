@@ -3,6 +3,7 @@
 // Cualquier cambio aquí debe reflejarse en el doc 05 en la misma sesión (Gobernanza v3).
 
 export type Rol = 'administrador' | 'custodio' | 'auditor'
+export type EstadoUsuario = 'pendiente' | 'aprobado' | 'rechazado'
 export type CondicionActivo = 'excelente' | 'bueno' | 'regular' | 'malo' | 'baja'
 export type EstadoActivo = 'disponible' | 'asignado' | 'prestado' | 'mantenimiento' | 'baja'
 export type EstadoPrestamo = 'activo' | 'vencido' | 'devuelto'
@@ -16,7 +17,8 @@ export interface Organizacion { id: number; nombre: string; clave: string; is_ac
 export interface Categoria { id: number; nombre: string; clave: string; is_active: boolean }
 export interface Usuario {
   id: number; nombre: string; email: string; rol: Rol
-  organizacion_id: number; is_active: boolean
+  organizacion_id: number | null; is_active: boolean
+  estado?: EstadoUsuario           // auto-registro con aprobación
 }
 export interface Activo {
   id: number; codigo: string; nombre: string; descripcion?: string
@@ -72,11 +74,13 @@ export interface ApiClient {
   editarCategoria(id: number, data: { nombre: string; clave: string }): Promise<Categoria>
   cambiarEstadoCategoria(id: number, activa: boolean): Promise<Categoria>
   // usuarios
-  listarUsuarios(page?: number): Promise<Paginado<Usuario>>
+  listarUsuarios(page?: number, estado?: EstadoUsuario): Promise<Paginado<Usuario>>
   crearUsuario(data: { nombre: string; email: string; rol: Rol; organizacion_id: number }): Promise<Usuario>
   obtenerUsuario(id: number): Promise<Usuario>               // PII: admin o titular
   editarUsuario(id: number, data: Partial<Pick<Usuario, 'nombre' | 'organizacion_id'>>): Promise<Usuario>
   cambiarRol(id: number, rol: Rol): Promise<Usuario>
+  aprobarUsuario(id: number, data: { rol: Rol; organizacion_id: number }): Promise<Usuario>
+  rechazarUsuario(id: number): Promise<Usuario>
   desactivarUsuario(id: number): Promise<void>
   descargarCarta(id: number): Promise<Blob>                  // PDF; admin o titular
   // activos
@@ -208,11 +212,13 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
     cambiarEstadoCategoria: (id, activa) =>
       request('PATCH', `/categorias/${id}/estado`, { activa }),
 
-    listarUsuarios: (page) => request('GET', `/usuarios${toQuery({ page })}`),
+    listarUsuarios: (page, estado) => request('GET', `/usuarios${toQuery({ page, estado })}`),
     crearUsuario: (data) => request('POST', '/usuarios', data),
     obtenerUsuario: (id) => request('GET', `/usuarios/${id}`),
     editarUsuario: (id, data) => request('PUT', `/usuarios/${id}`, data),
     cambiarRol: (id, rol) => request('PATCH', `/usuarios/${id}/rol`, { rol }),
+    aprobarUsuario: (id, data) => request('PATCH', `/usuarios/${id}/aprobar`, data),
+    rechazarUsuario: (id) => request('PATCH', `/usuarios/${id}/rechazar`, undefined),
     desactivarUsuario: (id) => request('PATCH', `/usuarios/${id}/desactivar`, undefined, 'void'),
     descargarCarta: (id) => request('GET', `/usuarios/${id}/carta`, undefined, 'blob'),
 

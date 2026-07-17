@@ -11,6 +11,7 @@ final class VerifiedClaims
         public readonly string $uid,        // sub / firebase uid
         public readonly ?string $email,
         public readonly ?int $authTime,     // epoch; para comparar con tokensValidAfterTime
+        public readonly ?string $nombre = null, // claim 'name' (Google/displayName)
     ) {
     }
 }

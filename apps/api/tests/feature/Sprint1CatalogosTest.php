@@ -34,6 +34,7 @@ final class Sprint1CatalogosTest extends CIUnitTestCase
     {
         parent::setUp();
         $this->resetServices();
+        cache()->clean(); // evita acumulación del throttler entre tests
         Services::injectMock('currentUser', new CurrentUser());
 
         $this->verifier = new FakeTokenVerifier();

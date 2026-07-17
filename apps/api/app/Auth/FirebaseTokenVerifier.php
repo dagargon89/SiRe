@@ -30,6 +30,7 @@ final class FirebaseTokenVerifier implements TokenVerifier
         $claims   = $token->claims();
         $uid      = (string) $claims->get('sub');
         $email    = $claims->get('email');
+        $nombre   = $claims->get('name');
         $authTime = $claims->get('auth_time');
 
         if ($authTime instanceof \DateTimeInterface) {
@@ -40,6 +41,7 @@ final class FirebaseTokenVerifier implements TokenVerifier
             $uid,
             $email !== null ? (string) $email : null,
             $authTime !== null ? (int) $authTime : null,
+            $nombre !== null ? (string) $nombre : null,
         );
     }
 }
