@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\ActivoModel;
-use App\Models\AsignacionModel;
 use App\Models\MovimientoModel;
 use App\Services\Activos\CrearActivoService;
 use App\Services\Activos\EtiquetaPdf;
@@ -117,13 +116,18 @@ class Activos extends ApiController
             'creado_en'     => $m['creado_en'],
         ], $historial);
 
-        $vigente = (new AsignacionModel())->vigenteDe($id);
+        $vigente = $this->model()->db->table('asignaciones a')
+            ->select('a.id, a.activo_id, a.usuario_id, a.asignada_en, u.nombre AS usuario_nombre')
+            ->join('usuarios u', 'u.id = a.usuario_id')
+            ->where('a.activo_id', $id)->where('a.revocada_en', null)
+            ->get()->getRowArray();
         $asignacionVigente = $vigente === null ? null : [
-            'id'          => (int) $vigente['id'],
-            'activo_id'   => (int) $vigente['activo_id'],
-            'usuario_id'  => (int) $vigente['usuario_id'],
-            'asignada_en' => $vigente['asignada_en'],
-            'revocada_en' => null,
+            'id'             => (int) $vigente['id'],
+            'activo_id'      => (int) $vigente['activo_id'],
+            'usuario_id'     => (int) $vigente['usuario_id'],
+            'usuario_nombre' => $vigente['usuario_nombre'],
+            'asignada_en'    => $vigente['asignada_en'],
+            'revocada_en'    => null,
         ];
 
         return $this->ok([

@@ -6,15 +6,17 @@ import { Button } from '../components/Button'
 
 /** Pantalla de Login (RF-01) — réplica 1:1 del prototipo (panel de marca + formulario). */
 export function Login() {
-  const { login } = useAuth()
+  const { login, resetPassword } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [aviso, setAviso] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    setAviso(null)
     setSending(true)
     try {
       await login(email.trim(), password)
@@ -22,6 +24,21 @@ export function Login() {
       setError(mensajeError(err))
     } finally {
       setSending(false)
+    }
+  }
+
+  async function onReset() {
+    setError(null)
+    setAviso(null)
+    if (email.trim() === '') {
+      setError('Escribe tu correo para enviarte el enlace de restablecimiento.')
+      return
+    }
+    try {
+      await resetPassword(email.trim())
+      setAviso('Te enviamos un correo para restablecer tu contraseña (revisa spam).')
+    } catch (err) {
+      setError(mensajeError(err))
     }
   }
 
@@ -91,11 +108,27 @@ export function Login() {
                 ⚠ {error}
               </div>
             )}
+            {aviso && (
+              <div
+                role="status"
+                className="flex items-center gap-2 px-3 py-2.5 rounded-[6px] text-[12.5px] text-success border border-success"
+              >
+                ✓ {aviso}
+              </div>
+            )}
           </div>
 
           <Button type="submit" disabled={sending} className="h-[46px] w-full">
             {sending ? 'Entrando…' : 'Entrar'}
           </Button>
+
+          <button
+            type="button"
+            onClick={onReset}
+            className="text-[12.5px] text-accent hover:underline self-center"
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
         </form>
       </div>
     </div>

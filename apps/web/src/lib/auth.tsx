@@ -7,6 +7,7 @@ import {
 } from 'react'
 import {
   onIdTokenChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   type User,
@@ -21,6 +22,7 @@ interface AuthState {
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  resetPassword: (email: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -61,8 +63,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth)
   }
 
+  async function resetPassword(email: string): Promise<void> {
+    await sendPasswordResetEmail(auth, email)
+  }
+
   return (
-    <AuthContext.Provider value={{ firebaseUser, perfil, loading, login, logout }}>
+    <AuthContext.Provider value={{ firebaseUser, perfil, loading, login, logout, resetPassword }}>
       {children}
     </AuthContext.Provider>
   )

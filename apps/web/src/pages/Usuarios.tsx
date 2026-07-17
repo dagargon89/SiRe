@@ -39,7 +39,11 @@ export function Usuarios() {
         <Card className="p-4 border-danger text-danger text-sm">No se pudo cargar. Reintenta.</Card>
       )}
 
-      {q.data && (
+      {q.data && q.data.data.length === 0 && (
+        <p className="text-center text-ink-muted py-12">No hay usuarios.</p>
+      )}
+
+      {q.data && q.data.data.length > 0 && (
         <Card className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

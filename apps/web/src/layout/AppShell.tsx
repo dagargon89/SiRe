@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { currentTheme, toggleTheme, type Theme } from '../lib/theme'
@@ -20,7 +20,6 @@ const NAV: NavDef[] = [
   { to: '/organizaciones', label: 'Organizaciones', icon: '◫', roles: ['administrador'] },
   { to: '/categorias', label: 'Categorías', icon: '⊞', roles: ['administrador'] },
   { to: '/usuarios', label: 'Usuarios', icon: '◉', roles: ['administrador'] },
-  { to: '/perfil', label: 'Perfil', icon: '○', roles: ['administrador', 'custodio', 'auditor'] },
 ]
 
 const ROL_LABEL: Record<Rol, string> = {
@@ -33,48 +32,62 @@ function iniciales(nombre: string): string {
   return nombre.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
 }
 
+const COLLAPSE_KEY = 'sire-sidebar-collapsed'
+
 export function AppShell() {
   const { perfil, logout } = useAuth()
   const navigate = useNavigate()
   const [theme, setTheme] = useState<Theme>(currentTheme())
   const [drawer, setDrawer] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === '1')
+  const [menu, setMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenu(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
+
+  function toggleCollapsed() {
+    setCollapsed((c) => {
+      const next = !c
+      localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0')
+      return next
+    })
+  }
 
   if (!perfil) return null
   const rol = perfil.rol
   const items = NAV.filter((n) => n.roles.includes(rol))
+  const anchoSidebar = collapsed ? 'md:w-[72px]' : 'md:w-[232px]'
 
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Backdrop del drawer en móvil */}
       {drawer && (
-        <div
-          className="md:hidden fixed inset-0 bg-black/40 z-40"
-          onClick={() => setDrawer(false)}
-          aria-hidden="true"
-        />
+        <div className="md:hidden fixed inset-0 bg-black/40 z-40" onClick={() => setDrawer(false)} aria-hidden="true" />
       )}
 
-      {/* Sidebar (drawer en < md) */}
+      {/* Sidebar (drawer en < md; colapsable en desktop) */}
       <nav
         aria-label="Principal"
         className={
-          'w-[232px] flex-none flex flex-col p-[20px_12px] gap-1 text-white ' +
+          `w-[232px] ${anchoSidebar} flex-none flex flex-col p-3 gap-1 text-white transition-[width] ` +
           'max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:transition-transform ' +
           (drawer ? 'max-md:translate-x-0' : 'max-md:-translate-x-full')
         }
         style={{ background: 'var(--sire-sidebar)' }}
       >
         <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2.5 px-2.5 pt-1 pb-[18px] text-left"
+          onClick={() => { navigate('/'); setDrawer(false) }}
+          className="flex items-center gap-2.5 px-2.5 pt-1 pb-4 text-left"
+          title="SiRe"
         >
-          <span
-            className="w-[30px] h-[30px] rounded-[7px] grid place-items-center font-bold text-sm text-white"
-            style={{ background: '#2E7D9A' }}
-          >
-            S
-          </span>
-          <span className="font-bold text-base text-white">SiRe</span>
+          <span className="w-[30px] h-[30px] rounded-[7px] grid place-items-center font-bold text-sm text-white flex-none" style={{ background: '#2E7D9A' }}>S</span>
+          {!collapsed && <span className="font-bold text-base text-white">SiRe</span>}
         </button>
 
         {items.map((n) => (
@@ -83,56 +96,36 @@ export function AppShell() {
             to={n.to}
             end={n.to === '/'}
             onClick={() => setDrawer(false)}
+            title={collapsed ? n.label : undefined}
             className={({ isActive }) =>
               'flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ' +
-              (isActive
-                ? 'bg-white/15 text-white font-semibold'
-                : 'text-[color:var(--sire-sidebar-text)] hover:bg-white/10')
+              (collapsed ? 'md:justify-center ' : '') +
+              (isActive ? 'bg-white/15 text-white font-semibold' : 'text-[color:var(--sire-sidebar-text)] hover:bg-white/10')
             }
           >
-            <span className="w-[18px] text-center text-sm" aria-hidden="true">{n.icon}</span>
-            {n.label}
+            <span className="w-[18px] text-center text-sm flex-none" aria-hidden="true">{n.icon}</span>
+            <span className={collapsed ? 'md:hidden' : ''}>{n.label}</span>
           </NavLink>
         ))}
 
         <div className="flex-1" />
 
-        {/* Perfil */}
-        <div className="flex items-center gap-2.5 p-[12px_10px] border-t border-white/10">
-          <span
-            className="w-8 h-8 rounded-full grid place-items-center text-xs font-bold text-white flex-none"
-            style={{ background: '#2E7D9A' }}
-          >
-            {iniciales(perfil.nombre)}
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="text-[12.5px] font-semibold text-white truncate">{perfil.nombre}</div>
-            <div className="text-[11px]" style={{ color: 'var(--sire-sidebar-text)' }}>
-              {ROL_LABEL[rol]}
-            </div>
-          </div>
-          <button
-            onClick={() => void logout()}
-            title="Cerrar sesión"
-            aria-label="Cerrar sesión"
-            className="w-7 h-7 rounded-[5px] text-[color:var(--sire-sidebar-text)] hover:bg-white/10 hover:text-white"
-          >
-            ⏻
-          </button>
-        </div>
+        {/* Colapsar (solo desktop) */}
+        <button
+          onClick={toggleCollapsed}
+          className="hidden md:flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-[color:var(--sire-sidebar-text)] hover:bg-white/10"
+          aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+          title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+        >
+          <span className="w-[18px] text-center flex-none" aria-hidden="true">{collapsed ? '»' : '«'}</span>
+          {!collapsed && <span>Colapsar</span>}
+        </button>
       </nav>
 
       {/* Contenido */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-[58px] flex-none bg-surface border-b border-border flex items-center gap-3.5 px-[22px]">
-          <button
-            type="button"
-            aria-label="Abrir menú"
-            onClick={() => setDrawer(true)}
-            className="md:hidden size-9 rounded-md border border-border text-ink"
-          >
-            ☰
-          </button>
+          <button type="button" aria-label="Abrir menú" onClick={() => setDrawer(true)} className="md:hidden size-9 rounded-md border border-border text-ink">☰</button>
           <input
             type="search"
             placeholder="Buscar activo por código, nombre o serie…"
@@ -147,17 +140,45 @@ export function AppShell() {
           >
             {theme === 'dark' ? '☾ Oscuro' : '☀ Claro'}
           </button>
-          <NavLink
-            to="/perfil"
-            className="flex items-center gap-2.5 cursor-pointer px-2.5 py-1.5 rounded-[7px] hover:bg-surface-2"
-          >
-            <span
-              className="w-[30px] h-[30px] rounded-full grid place-items-center text-[11.5px] font-bold text-white bg-primary"
+
+          {/* Menú de perfil (desplegable) */}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setMenu((m) => !m)}
+              aria-haspopup="menu"
+              aria-expanded={menu}
+              className="flex items-center gap-2.5 cursor-pointer px-2.5 py-1.5 rounded-[7px] hover:bg-surface-2"
             >
-              {iniciales(perfil.nombre)}
-            </span>
-            <span className="text-[13px] font-semibold">{perfil.nombre}</span>
-          </NavLink>
+              <span className="w-[30px] h-[30px] rounded-full grid place-items-center text-[11.5px] font-bold text-white bg-primary flex-none">
+                {iniciales(perfil.nombre)}
+              </span>
+              <span className="text-[13px] font-semibold max-md:hidden">{perfil.nombre}</span>
+              <span aria-hidden="true" className="text-ink-muted text-xs">▾</span>
+            </button>
+
+            {menu && (
+              <div role="menu" className="absolute right-0 mt-1 w-56 bg-surface border border-border rounded-md shadow-[var(--sire-shadow)] py-1 z-50">
+                <div className="px-3 py-2 border-b border-border">
+                  <div className="text-sm font-semibold text-ink truncate">{perfil.nombre}</div>
+                  <div className="text-xs text-ink-muted">{ROL_LABEL[rol]}</div>
+                </div>
+                <button
+                  role="menuitem"
+                  onClick={() => { setMenu(false); navigate('/perfil') }}
+                  className="w-full text-left px-3 py-2 text-sm text-ink hover:bg-surface-2"
+                >
+                  Mi perfil
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={() => { setMenu(false); void logout() }}
+                  className="w-full text-left px-3 py-2 text-sm text-danger hover:bg-surface-2"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
+          </div>
         </header>
 
         <main className="flex-1 overflow-auto p-[26px_30px]">

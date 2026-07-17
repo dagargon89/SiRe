@@ -72,7 +72,10 @@ export function ActivoFicha() {
         <Dato k="Proveedor" v={activo.proveedor} />
         <Dato k="Factura" v={activo.factura_numero} />
         {asignacion_vigente && (
-          <Dato k="Custodio actual" v={nombreUsuario(asignacion_vigente.usuario_id)} />
+          <Dato
+            k="Custodio actual"
+            v={asignacion_vigente.usuario_nombre ?? nombreUsuario(asignacion_vigente.usuario_id)}
+          />
         )}
       </Card>
 

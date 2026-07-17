@@ -141,6 +141,7 @@ export interface Activo {
 }
 export interface Asignacion {
   id: number; activo_id: number; usuario_id: number;
+  usuario_nombre?: string | null; // enriquecido en asignacion_vigente (sprint de pulido)
   asignada_en: string; revocada_en?: string | null; revocacion_motivo?: string;
 }
 export interface Prestamo {
