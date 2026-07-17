@@ -5,8 +5,9 @@ import { Card } from '../components/Card'
 import { Modal } from '../components/Modal'
 import { EstadoPrestamoBadge } from '../components/Badge'
 import { useAuth } from '../lib/auth'
+import { useToast } from '../lib/toast'
 import { usePrestamos, useDevolver } from '../lib/queries'
-import type { CondicionActivo, EstadoPrestamo, Prestamo } from '../lib/api'
+import { ApiError, type CondicionActivo, type EstadoPrestamo, type Prestamo } from '../lib/api'
 
 const FILTROS: { value: EstadoPrestamo | ''; label: string }[] = [
   { value: '', label: 'Todos' },
@@ -70,11 +71,11 @@ export function Prestamos() {
                   }
                 >
                   <td className="px-4 py-3">
-                    <Link to={`/activos/${p.activo_id}`} className="text-accent hover:underline">
-                      #{p.activo_id}
+                    <Link to={`/activos/${p.activo_id}`} className="text-accent hover:underline font-mono">
+                      {p.activo_codigo ?? `#${p.activo_id}`}
                     </Link>
                   </td>
-                  <td className="px-4 py-3">#{p.prestatario_id}</td>
+                  <td className="px-4 py-3">{p.prestatario_nombre ?? `#${p.prestatario_id}`}</td>
                   <td className="px-4 py-3 tabular-nums">{p.devolucion_esperada?.slice(0, 16).replace('T', ' ')}</td>
                   <td className="px-4 py-3"><EstadoPrestamoBadge estado={p.estado} /></td>
                   <td className="px-4 py-3 text-right">
@@ -100,6 +101,7 @@ export function Prestamos() {
 
 function ModalDevolver({ prestamo, onCerrar }: { prestamo: Prestamo; onCerrar: () => void }) {
   const devolver = useDevolver()
+  const toast = useToast()
   const [condicion, setCondicion] = useState<Exclude<CondicionActivo, 'baja'>>('bueno')
   const [enviando, setEnviando] = useState(false)
 
@@ -124,8 +126,14 @@ function ModalDevolver({ prestamo, onCerrar }: { prestamo: Prestamo; onCerrar: (
             disabled={enviando}
             onClick={async () => {
               setEnviando(true)
-              await devolver.mutateAsync({ id: prestamo.id, condicion_devolucion: condicion })
-              onCerrar()
+              try {
+                await devolver.mutateAsync({ id: prestamo.id, condicion_devolucion: condicion })
+                toast.exito('Devolución registrada')
+                onCerrar()
+              } catch (e) {
+                toast.error(e instanceof ApiError ? e.message : 'No se pudo devolver')
+                setEnviando(false)
+              }
             }}
           >
             Registrar devolución

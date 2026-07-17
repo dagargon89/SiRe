@@ -6,6 +6,7 @@ import { Field } from '../components/Field'
 import { Modal } from '../components/Modal'
 import { EstadoActivoBadge } from '../components/Badge'
 import { useAuth } from '../lib/auth'
+import { useToast } from '../lib/toast'
 import { api } from '../lib/apiClient'
 import {
   useActivo, useDarDeBaja, useMantenimiento,
@@ -25,6 +26,7 @@ export function ActivoFicha() {
   const activoId = Number(id)
   const navigate = useNavigate()
   const { perfil } = useAuth()
+  const toast = useToast()
   const q = useActivo(activoId)
   const baja = useDarDeBaja()
   const mant = useMantenimiento()
@@ -125,7 +127,7 @@ export function ActivoFicha() {
         <ModalMotivo
           titulo="Dar de baja" etiqueta="Motivo de baja" accionLabel="Confirmar baja" peligro
           onCerrar={() => setModal(null)}
-          onConfirmar={async (m) => { await baja.mutateAsync({ id: activoId, motivo: m }); setModal(null) }}
+          onConfirmar={async (m) => { await baja.mutateAsync({ id: activoId, motivo: m }); toast.exito('Activo dado de baja'); setModal(null) }}
         />
       )}
       {modal === 'revocar' && asignacion_vigente && (
@@ -134,6 +136,7 @@ export function ActivoFicha() {
           onCerrar={() => setModal(null)}
           onConfirmar={async (m) => {
             await revocar.mutateAsync({ id: asignacion_vigente.id, motivo: m, activo_id: activoId })
+            toast.exito('Resguardo revocado')
             setModal(null)
           }}
         />
@@ -144,6 +147,7 @@ export function ActivoFicha() {
           onCerrar={() => setModal(null)}
           onConfirmar={async (uid, notas) => {
             await asignar.mutateAsync({ activo_id: activoId, usuario_id: uid, notas })
+            toast.exito('Activo asignado')
             setModal(null)
           }}
         />
@@ -154,6 +158,7 @@ export function ActivoFicha() {
           onCerrar={() => setModal(null)}
           onConfirmar={async (uid, notas) => {
             await transferir.mutateAsync({ activo_id: activoId, nuevo_usuario_id: uid, notas })
+            toast.exito('Activo transferido')
             setModal(null)
           }}
         />
@@ -167,6 +172,7 @@ export function ActivoFicha() {
               activo_id: activoId, prestatario_id: uid,
               devolucion_esperada: devolucion, condicion_prestamo: condicion, notas,
             })
+            toast.exito('Préstamo registrado')
             setModal(null)
           }}
         />

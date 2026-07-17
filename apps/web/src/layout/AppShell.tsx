@@ -37,6 +37,7 @@ export function AppShell() {
   const { perfil, logout } = useAuth()
   const navigate = useNavigate()
   const [theme, setTheme] = useState<Theme>(currentTheme())
+  const [drawer, setDrawer] = useState(false)
 
   if (!perfil) return null
   const rol = perfil.rol
@@ -44,10 +45,23 @@ export function AppShell() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
+      {/* Backdrop del drawer en móvil */}
+      {drawer && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/40 z-40"
+          onClick={() => setDrawer(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar (drawer en < md) */}
       <nav
         aria-label="Principal"
-        className="w-[232px] flex-none flex flex-col p-[20px_12px] gap-1 text-white"
+        className={
+          'w-[232px] flex-none flex flex-col p-[20px_12px] gap-1 text-white ' +
+          'max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:transition-transform ' +
+          (drawer ? 'max-md:translate-x-0' : 'max-md:-translate-x-full')
+        }
         style={{ background: 'var(--sire-sidebar)' }}
       >
         <button
@@ -68,6 +82,7 @@ export function AppShell() {
             key={n.to}
             to={n.to}
             end={n.to === '/'}
+            onClick={() => setDrawer(false)}
             className={({ isActive }) =>
               'flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ' +
               (isActive
@@ -110,11 +125,19 @@ export function AppShell() {
       {/* Contenido */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-[58px] flex-none bg-surface border-b border-border flex items-center gap-3.5 px-[22px]">
+          <button
+            type="button"
+            aria-label="Abrir menú"
+            onClick={() => setDrawer(true)}
+            className="md:hidden size-9 rounded-md border border-border text-ink"
+          >
+            ☰
+          </button>
           <input
             type="search"
             placeholder="Buscar activo por código, nombre o serie…"
             aria-label="Buscador global de activos"
-            className="w-[340px] h-[38px] px-3.5 rounded-[7px] border border-border bg-bg text-ink text-[13px] outline-none focus-visible:outline-2 focus-visible:outline-accent"
+            className="w-full max-w-[340px] h-[38px] px-3.5 rounded-[7px] border border-border bg-bg text-ink text-[13px] outline-none focus-visible:outline-2 focus-visible:outline-accent"
           />
           <div className="flex-1" />
           <button

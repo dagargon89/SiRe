@@ -1,7 +1,12 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { render as rtlRender, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CatalogoClaves } from './CatalogoClaves'
+import { ToastProvider } from '../lib/toast'
+
+// Envuelve en ToastProvider (el formulario emite toasts al guardar).
+const render = (ui: ReactElement) => rtlRender(<ToastProvider>{ui}</ToastProvider>)
 
 const items = [
   { id: 1, nombre: 'Avanza', clave: 'AVZ', is_active: true },

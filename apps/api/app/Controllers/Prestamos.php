@@ -24,13 +24,26 @@ class Prestamos extends ApiController
         return new PrestamoService(new ActivoModel(), $this->model(), new MovimientoModel(), new UsuarioModel());
     }
 
+    /** Consulta base con activo + nombres (para evitar IDs sueltos en la UI). */
+    private function builder()
+    {
+        return db_connect()->table('prestamos p')
+            ->select('p.*, a.codigo AS activo_codigo, pt.nombre AS prestatario_nombre, pm.nombre AS prestamista_nombre')
+            ->join('activos a', 'a.id = p.activo_id')
+            ->join('usuarios pt', 'pt.id = p.prestatario_id')
+            ->join('usuarios pm', 'pm.id = p.prestamista_id');
+    }
+
     private function presentar(array $p, string $ahora): array
     {
         return [
             'id'                   => (int) $p['id'],
             'activo_id'            => (int) $p['activo_id'],
+            'activo_codigo'        => $p['activo_codigo'] ?? null,
             'prestatario_id'       => (int) $p['prestatario_id'],
+            'prestatario_nombre'   => $p['prestatario_nombre'] ?? null,
             'prestamista_id'       => (int) $p['prestamista_id'],
+            'prestamista_nombre'   => $p['prestamista_nombre'] ?? null,
             'prestado_en'          => $p['prestado_en'],
             'devolucion_esperada'  => $p['devolucion_esperada'],
             'devuelto_en'          => $p['devuelto_en'],
@@ -40,25 +53,30 @@ class Prestamos extends ApiController
         ];
     }
 
+    private function porId(int $id, string $ahora): array
+    {
+        return $this->presentar($this->builder()->where('p.id', $id)->get()->getRowArray(), $ahora);
+    }
+
     /** GET /prestamos?estado=activo|vencido|devuelto — todos los roles. */
     public function index(): ResponseInterface
     {
-        $ahora  = date('Y-m-d H:i:s');
-        $model  = $this->model();
-        $estado = $this->request->getGet('estado');
+        $ahora   = date('Y-m-d H:i:s');
+        $estado  = $this->request->getGet('estado');
+        $builder = $this->builder();
 
         if ($estado === 'activo') {
-            $model->where('devuelto_en', null)->where('devolucion_esperada >=', $ahora);
+            $builder->where('p.devuelto_en', null)->where('p.devolucion_esperada >=', $ahora);
         } elseif ($estado === 'vencido') {
-            $model->where('devuelto_en', null)->where('devolucion_esperada <', $ahora);
+            $builder->where('p.devuelto_en', null)->where('p.devolucion_esperada <', $ahora);
         } elseif ($estado === 'devuelto') {
-            $model->where('devuelto_en IS NOT NULL');
+            $builder->where('p.devuelto_en IS NOT NULL');
         }
 
         $perPage = 25;
         $page    = max(1, (int) ($this->request->getGet('page') ?? 1));
-        $rows    = $model->orderBy('id', 'DESC')->paginate($perPage, 'default', $page);
-        $total   = $model->pager->getTotal('default');
+        $total   = $builder->countAllResults(false);
+        $rows    = $builder->orderBy('p.id', 'DESC')->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
 
         return $this->ok([
             'data' => array_map(fn ($p) => $this->presentar($p, $ahora), $rows),
@@ -75,18 +93,18 @@ class Prestamos extends ApiController
             return $this->fromException($e);
         }
 
-        return $this->ok($this->presentar($p, date('Y-m-d H:i:s')), 201);
+        return $this->ok($this->porId((int) $p['id'], date('Y-m-d H:i:s')), 201);
     }
 
     /** PATCH /prestamos/{id}/devolver — administrador o custodio. */
     public function devolver(int $id): ResponseInterface
     {
         try {
-            $p = $this->service()->devolver($id, $this->body(), (int) $this->actor()['id']);
+            $this->service()->devolver($id, $this->body(), (int) $this->actor()['id']);
         } catch (ServiceException $e) {
             return $this->fromException($e);
         }
 
-        return $this->ok($this->presentar($p, date('Y-m-d H:i:s')));
+        return $this->ok($this->porId($id, date('Y-m-d H:i:s')));
     }
 }

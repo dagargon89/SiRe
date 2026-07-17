@@ -5,6 +5,7 @@ import { Field } from './Field'
 import { Modal } from './Modal'
 import { ActivaBadge } from './Badge'
 import { ApiError } from '../lib/api'
+import { useToast } from '../lib/toast'
 
 interface ItemClave {
   id: number
@@ -115,6 +116,7 @@ function FormularioClave({
   onGuardar: (v: { id?: number; nombre: string; clave: string }) => Promise<unknown>
   onCerrar: () => void
 }) {
+  const toast = useToast()
   const [nombre, setNombre] = useState(inicial?.nombre ?? '')
   const [clave, setClave] = useState(inicial?.clave ?? '')
   const [error, setError] = useState<string | null>(null)
@@ -126,6 +128,7 @@ function FormularioClave({
     setEnviando(true)
     try {
       await onGuardar({ id: inicial?.id, nombre: nombre.trim(), clave: clave.trim().toUpperCase() })
+      toast.exito(inicial ? 'Cambios guardados' : `${singular[0].toUpperCase()}${singular.slice(1)} creada`)
       onCerrar()
     } catch (err) {
       setError(

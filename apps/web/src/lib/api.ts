@@ -32,6 +32,9 @@ export interface Asignacion {
 }
 export interface Prestamo {
   id: number; activo_id: number; prestatario_id: number; prestamista_id: number
+  activo_codigo?: string | null           // enriquecido para la UI (Sprint pulido)
+  prestatario_nombre?: string | null
+  prestamista_nombre?: string | null
   prestado_en: string; devolucion_esperada: string; devuelto_en?: string | null
   condicion_prestamo: Exclude<CondicionActivo, 'baja'>
   condicion_devolucion?: Exclude<CondicionActivo, 'baja'>
