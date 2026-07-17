@@ -12,6 +12,7 @@
 /apps/api/writable/logs/*
 /apps/api/writable/session/*
 /apps/api/writable/uploads/*
+/apps/api/writable/mpdf/
 !/apps/api/writable/**/index.html
 /apps/api/.phpunit.cache/
 /apps/api/phpunit.xml
