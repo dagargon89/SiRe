@@ -61,4 +61,10 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     $routes->get('prestamos', 'Prestamos::index', $auth);
     $routes->post('prestamos', 'Prestamos::create', $admin);
     $routes->patch('prestamos/(:num)/devolver', 'Prestamos::devolver/$1', ['filter' => ['auth', 'role:administrador,custodio', 'throttle']]);
+
+    // Dashboard y reportes
+    $adminAuditor = ['filter' => ['auth', 'role:administrador,auditor', 'throttle']];
+    $routes->get('dashboard', 'Dashboard::index', $auth);
+    $routes->get('reportes/inventario', 'Reportes::inventario', $adminAuditor);
+    $routes->get('reportes/movimientos', 'Reportes::movimientos', $adminAuditor);
 });

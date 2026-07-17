@@ -132,5 +132,6 @@ final class PrestamoService
             throw new ServiceException('operacion_fallida', 'No se pudo completar la operación.', 422);
         }
         $db->transCommit();
+        \App\Services\Dashboard\DashboardService::invalidarCache();
     }
 }

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App'
 import type { Usuario } from './lib/api'
 
@@ -7,6 +8,19 @@ const mockUseAuth = vi.fn()
 vi.mock('./lib/auth', () => ({
   useAuth: () => mockUseAuth(),
 }))
+// El dashboard (ruta índice) usa el ApiClient; lo neutralizamos en este test de shell.
+vi.mock('./lib/queries', () => ({
+  useDashboard: () => ({ data: undefined, isLoading: true, isError: false }),
+}))
+
+function renderApp() {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(
+    <QueryClientProvider client={qc}>
+      <App />
+    </QueryClientProvider>,
+  )
+}
 
 const perfil: Usuario = {
   id: 1, nombre: 'Admin Demo', email: 'admin@demo.test',
@@ -18,13 +32,13 @@ describe('App (enrutado por sesión)', () => {
 
   it('muestra estado de carga', () => {
     mockUseAuth.mockReturnValue({ loading: true, firebaseUser: null, perfil: null })
-    render(<App />)
+    renderApp()
     expect(screen.getByText('Cargando…')).toBeInTheDocument()
   })
 
   it('muestra Login cuando no hay sesión', () => {
     mockUseAuth.mockReturnValue({ loading: false, firebaseUser: null, perfil: null })
-    render(<App />)
+    renderApp()
     expect(screen.getByRole('heading', { name: 'Iniciar sesión' })).toBeInTheDocument()
   })
 
@@ -35,7 +49,7 @@ describe('App (enrutado por sesión)', () => {
       perfil,
       logout: vi.fn(),
     })
-    render(<App />)
+    renderApp()
     // El admin ve enlaces de administración y su nombre en el shell.
     expect(screen.getByRole('link', { name: /Organizaciones/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Usuarios/ })).toBeInTheDocument()

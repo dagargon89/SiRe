@@ -161,6 +161,11 @@ export function useTransferir() {
   })
 }
 
+// ─── Dashboard ────────────────────────────────────────────────────
+export function useDashboard() {
+  return useQuery({ queryKey: ['dashboard'], queryFn: () => api.dashboard(), staleTime: 15_000 })
+}
+
 // ─── Préstamos ────────────────────────────────────────────────────
 export function usePrestamos(estado?: EstadoPrestamo) {
   return useQuery({ queryKey: ['prestamos', estado], queryFn: () => api.listarPrestamos(estado) })

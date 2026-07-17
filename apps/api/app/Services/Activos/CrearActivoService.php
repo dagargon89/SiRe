@@ -76,6 +76,7 @@ final class CrearActivoService
                 throw new ServiceException('alta_fallida', 'No se pudo crear el activo.', 422);
             }
             $db->transCommit();
+            \App\Services\Dashboard\DashboardService::invalidarCache();
         } catch (ServiceException $e) {
             $db->transRollback();
             throw $e;

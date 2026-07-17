@@ -6,11 +6,12 @@ import { Organizaciones } from './pages/Organizaciones'
 import { Categorias } from './pages/Categorias'
 import { Usuarios } from './pages/Usuarios'
 import { Perfil } from './pages/Perfil'
-import { Placeholder } from './pages/Placeholder'
 import { Activos } from './pages/Activos'
 import { ActivoFicha } from './pages/ActivoFicha'
 import { ActivoForm } from './pages/ActivoForm'
 import { Prestamos } from './pages/Prestamos'
+import { Dashboard } from './pages/Dashboard'
+import { Reportes } from './pages/Reportes'
 
 function App() {
   const { firebaseUser, perfil, loading } = useAuth()
@@ -26,18 +27,19 @@ function App() {
   }
 
   const esAdmin = perfil.rol === 'administrador'
+  const veReportes = perfil.rol === 'administrador' || perfil.rol === 'auditor'
 
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<AppShell />}>
-          <Route index element={<Placeholder titulo="Dashboard" />} />
+          <Route index element={<Dashboard />} />
           <Route path="activos" element={<Activos />} />
           {esAdmin && <Route path="activos/nuevo" element={<ActivoForm />} />}
           {esAdmin && <Route path="activos/:id/editar" element={<ActivoForm />} />}
           <Route path="activos/:id" element={<ActivoFicha />} />
           <Route path="prestamos" element={<Prestamos />} />
-          <Route path="reportes" element={<Placeholder titulo="Reportes" />} />
+          {veReportes && <Route path="reportes" element={<Reportes />} />}
           <Route path="perfil" element={<Perfil />} />
           {esAdmin && <Route path="organizaciones" element={<Organizaciones />} />}
           {esAdmin && <Route path="categorias" element={<Categorias />} />}

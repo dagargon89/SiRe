@@ -294,6 +294,7 @@ class Activos extends ApiController
                 throw new ServiceException('operacion_fallida', 'No se pudo completar la operación.', 422);
             }
             $db->transCommit();
+            \App\Services\Dashboard\DashboardService::invalidarCache();
         } catch (ServiceException $e) {
             $db->transRollback();
             return $this->fromException($e);
