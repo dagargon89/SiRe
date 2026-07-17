@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────
+   SiRe — Design System.
+   Valores de color y tipografía tomados 1:1 del prototipo aprobado
+   (SiRe Prototipo.dc.html). Sustituyen la paleta tentativa del doc 08
+   (ver SiRe_documentacion/demo-ux/prototipo/DISCREPANCIAS.md).
+   Los tokens --sire-* son la fuente única; nunca hardcodear colores.
+   ───────────────────────────────────────────────────────────── */
+
+/* Modo claro (default) */
+:root {
+  /* Marca */
+  --sire-primary: #16334f;         /* navy */
+  --sire-primary-hover: #1e4468;
+  --sire-primary-contrast: #ffffff;
+  --sire-accent: #2e7d9a;          /* teal-azul */
+
+  /* Estados semánticos */
+  --sire-success: #2e7d5a;
+  --sire-warning: #b07a1e;
+  --sire-danger: #b3413a;
+  --sire-info: #2e7d9a;            /* el prototipo usa el acento para informativo */
+
+  /* Superficies */
+  --sire-bg: #f2f6f9;
+  --sire-surface: #ffffff;
+  --sire-surface-2: #edf3f8;       /* hover / filas alternas */
+  --sire-border: #d8e2eb;
+
+  /* Texto */
+  --sire-text: #14212e;
+  --sire-text-muted: #5b6b7a;
+  --sire-text-invert: #ffffff;
+
+  /* Sidebar */
+  --sire-sidebar: #16334f;
+  --sire-sidebar-text: #a9c3da;
+
+  /* Radios, sombra, foco */
+  --sire-radius: 0.5rem;
+  --sire-ring: rgba(46, 125, 154, 0.18);
+  --sire-shadow: 0 1px 3px rgba(20, 33, 46, 0.08), 0 1px 2px rgba(20, 33, 46, 0.06);
+  --sire-focus-ring: 0 0 0 3px rgba(46, 125, 154, 0.35);
+}
+
+/* Modo oscuro */
+:root[data-theme="dark"] {
+  --sire-primary: #2e7d9a;
+  --sire-primary-hover: #3b93b3;
+  --sire-primary-contrast: #0f1720;
+  --sire-accent: #5fb3d1;
+
+  --sire-success: #5bb58c;
+  --sire-warning: #d9a94e;
+  --sire-danger: #d96a62;
+  --sire-info: #5fb3d1;
+
+  --sire-bg: #0f1720;
+  --sire-surface: #182430;
+  --sire-surface-2: #1e2c3a;
+  --sire-border: #2a3a4a;
+
+  --sire-text: #e6edf3;
+  --sire-text-muted: #8ca0b3;
+  --sire-text-invert: #0f1720;
+
+  --sire-sidebar: #0b1520;
+  --sire-sidebar-text: #7fa0be;
+
+  --sire-ring: rgba(95, 179, 209, 0.2);
+  --sire-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --sire-focus-ring: 0 0 0 3px rgba(95, 179, 209, 0.4);
+}
+
+/* Puente tokens --sire-* → utilidades Tailwind (bg-primary, text-ink, etc.) */
+@theme {
+  --color-primary: var(--sire-primary);
+  --color-primary-hover: var(--sire-primary-hover);
+  --color-primary-contrast: var(--sire-primary-contrast);
+  --color-accent: var(--sire-accent);
+
+  --color-success: var(--sire-success);
+  --color-warning: var(--sire-warning);
+  --color-danger: var(--sire-danger);
+  --color-info: var(--sire-info);
+
+  --color-bg: var(--sire-bg);
+  --color-surface: var(--sire-surface);
+  --color-surface-2: var(--sire-surface-2);
+  --color-border: var(--sire-border);
+
+  --color-ink: var(--sire-text);
+  --color-ink-muted: var(--sire-text-muted);
+  --color-ink-invert: var(--sire-text-invert);
+
+  --color-sidebar: var(--sire-sidebar);
+  --color-sidebar-text: var(--sire-sidebar-text);
+
+  --radius-md: var(--sire-radius);
+
+  --font-sans: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+/* Base */
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  margin: 0;
+  background-color: var(--sire-bg);
+  color: var(--sire-text);
+  line-height: 1.5;
+}
+
+/* Foco visible consistente (WCAG 2.1 AA, doc 08 §3) */
+:where(input, select, textarea, button, [role="button"], a):focus-visible {
+  outline: 2px solid var(--sire-accent);
+  outline-offset: 2px;
+}
+
+/* Números tabulares en tablas (doc 08 §4) */
+table {
+  font-variant-numeric: tabular-nums;
+}

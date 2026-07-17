@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2E7D9A}a:hover{color:#16334F}
+button,input,select,textarea{font-family:'Public Sans',sans-serif}
+input:focus-visible,select:focus-visible,button:focus-visible,[role="button"]:focus-visible{outline:2px solid #2E7D9A;outline-offset:2px}
+[data-sire]{--bg:#F2F6F9;--sf:#FFFFFF;--tx:#14212E;--mut:#5B6B7A;--bd:#D8E2EB;--hv:#EDF3F8;--pri:#16334F;--prih:#1E4468;--acc:#2E7D9A;--dgr:#B3413A;--ok:#2E7D5A;--wrn:#B07A1E;--sb:#16334F;--sbt:#A9C3DA;--ring:rgba(46,125,154,.18)}
+[data-sire="dark"]{--bg:#0F1720;--sf:#182430;--tx:#E6EDF3;--mut:#8CA0B3;--bd:#2A3A4A;--hv:#1E2C3A;--pri:#2E7D9A;--prih:#3B93B3;--acc:#5FB3D1;--dgr:#D96A62;--ok:#5BB58C;--wrn:#D9A94E;--sb:#0B1520;--sbt:#7FA0BE;--ring:rgba(95,179,209,.2)}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</helmet>
+<div data-sire="{{ theme }}" style="font-family:'Public Sans',sans-serif; min-height:100vh; background:var(--bg); color:var(--tx);">
+
+<!-- LOGIN -->
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+<div data-screen-label="Login" style="min-height:100vh; display:flex;">
+<div style="flex:1; background:#16334F; color:#fff; display:flex; flex-direction:column; justify-content:space-between; padding:52px 48px;">
+<div style="display:flex; align-items:center; gap:10px;">
+<div style="width:36px; height:36px; border-radius:8px; background:#2E7D9A; display:grid; place-items:center; font-weight:700; font-size:16px;">S</div>
+<div style="font-weight:700; font-size:18px; letter-spacing:.02em;">SiRe</div>
+</div>
+<div style="display:flex; flex-direction:column; gap:14px; max-width:460px;">
+<div style="font-size:30px; font-weight:600; line-height:1.25; text-wrap:pretty;">Sistema de Resguardos para Organizaciones de la Sociedad Civil</div>
+<div style="font-size:14.5px; line-height:1.55; color:#A9C3DA;">Activos, resguardos y préstamos con trazabilidad completa.</div>
+</div>
+<div style="display:flex; gap:18px; font-size:12px; color:#7FA0BE;"><span>Grupo OSC Plan Juárez</span><span>·</span><span>Demo v1.0</span></div>
+</div>
+<div style="flex:1.1; background:var(--sf); display:flex; align-items:center; justify-content:center; padding:40px;">
+<div style="width:360px; display:flex; flex-direction:column; gap:22px;">
+<div style="display:flex; flex-direction:column; gap:6px;">
+<div style="font-size:22px; font-weight:700;">Iniciar sesión</div>
+<div style="font-size:13.5px; color:var(--mut);">Accede con tu cuenta institucional</div>
+</div>
+<div style="display:flex; flex-direction:column; gap:14px;">
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="lg-email" style="font-size:12.5px; font-weight:600;">Correo electrónico</label>
+<input id="lg-email" type="email" value="{{ loginEmail }}" onChange="{{ onLoginEmail }}" placeholder="nombre@demo.test" aria-invalid="{{ hasLoginErr }}" style="height:44px; padding:0 14px; border:1px solid var(--bd); border-radius:6px; font-size:14px; background:var(--sf); color:var(--tx); outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="lg-pass" style="font-size:12.5px; font-weight:600;">Contraseña</label>
+<input id="lg-pass" type="password" placeholder="••••••••" style="height:44px; padding:0 14px; border:1px solid var(--bd); border-radius:6px; font-size:14px; background:var(--sf); color:var(--tx); outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<sc-if value="{{ hasLoginErr }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display:flex; align-items:center; gap:8px; padding:10px 13px; background:rgba(179,65,58,.1); border:1px solid rgba(179,65,58,.3); border-radius:6px; font-size:12.5px; color:var(--dgr);">⚠ {{ loginErr }}</div>
+</sc-if>
+</div>
+<button onClick="{{ doLogin }}" style="height:46px; border:none; border-radius:6px; background:var(--pri); color:#fff; font-size:14.5px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">Entrar</button>
+<div style="display:flex; flex-direction:column; gap:9px; padding-top:6px; border-top:1px solid var(--bd);">
+<div style="font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--mut); font-weight:600;">Acceso rápido (demo)</div>
+<div style="display:flex; gap:8px;">
+<button onClick="{{ loginAdmin }}" style="flex:1; height:40px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--tx); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">Administrador</button>
+<button onClick="{{ loginCust }}" style="flex:1; height:40px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--tx); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">Custodio</button>
+<button onClick="{{ loginAud }}" style="flex:1; height:40px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--tx); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">Auditor</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<!-- APP SHELL -->
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex; height:100vh; overflow:hidden;">
+<nav aria-label="Principal" style="width:232px; flex:none; background:var(--sb); display:flex; flex-direction:column; padding:20px 12px; gap:4px;">
+<div onClick="{{ goDash }}" role="button" tabIndex="0" style="display:flex; align-items:center; gap:10px; padding:4px 10px 18px; cursor:pointer;">
+<div style="width:30px; height:30px; border-radius:7px; background:#2E7D9A; display:grid; place-items:center; font-weight:700; font-size:14px; color:#fff;">S</div>
+<div style="font-weight:700; font-size:16px; color:#fff;">SiRe</div>
+</div>
+<sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+<div onClick="{{ n.go }}" role="button" tabIndex="0" aria-current="{{ n.cur }}" style="{{ n.style }}" style-hover="background:rgba(255,255,255,.09);"><span style="width:18px; text-align:center; font-size:14px;">{{ n.icon }}</span>{{ n.label }}</div>
+</sc-for>
+<div style="flex:1;"></div>
+<div style="display:flex; align-items:center; gap:10px; padding:12px 10px; border-top:1px solid rgba(255,255,255,.1);">
+<div style="width:32px; height:32px; border-radius:50%; background:#2E7D9A; display:grid; place-items:center; font-size:12px; font-weight:700; color:#fff; flex:none;">{{ userInit }}</div>
+<div style="min-width:0; flex:1;">
+<div style="font-size:12.5px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ userName }}</div>
+<div style="font-size:11px; color:var(--sbt);">{{ userRolLabel }}</div>
+</div>
+<button onClick="{{ logout }}" title="Cerrar sesión" aria-label="Cerrar sesión" style="width:28px; height:28px; border:none; background:transparent; color:var(--sbt); font-size:15px; cursor:pointer; border-radius:5px;" style-hover="background:rgba(255,255,255,.1); color:#fff;">⏻</button>
+</div>
+</nav>
+<div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+<header style="height:58px; flex:none; background:var(--sf); border-bottom:1px solid var(--bd); display:flex; align-items:center; gap:14px; padding:0 22px;">
+<input type="search" value="{{ searchVal }}" onChange="{{ onSearch }}" placeholder="Buscar activo por código, nombre o serie…" aria-label="Buscador global de activos" style="width:340px; height:38px; padding:0 14px; border:1px solid var(--bd); border-radius:7px; background:var(--bg); color:var(--tx); font-size:13px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+<div style="flex:1;"></div>
+<button onClick="{{ toggleTheme }}" aria-label="Cambiar tema claro/oscuro" style="height:36px; padding:0 12px; border:1px solid var(--bd); border-radius:7px; background:transparent; color:var(--tx); font-size:12.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:7px;" style-hover="background:var(--hv);">{{ themeLabel }}</button>
+<div onClick="{{ goPerfil }}" role="button" tabIndex="0" style="display:flex; align-items:center; gap:9px; cursor:pointer; padding:5px 10px; border-radius:7px;" style-hover="background:var(--hv);">
+<div style="width:30px; height:30px; border-radius:50%; background:var(--pri); display:grid; place-items:center; font-size:11.5px; font-weight:700; color:#fff;">{{ userInit }}</div>
+<span style="font-size:13px; font-weight:600;">{{ userName }}</span>
+</div>
+</header>
+<main style="flex:1; overflow:auto; padding:26px 30px;">
+
+<!-- DASHBOARD -->
+<sc-if value="{{ rDash }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Dashboard" style="max-width:1150px; margin:0 auto; display:flex; flex-direction:column; gap:22px;">
+<div style="display:flex; align-items:baseline; gap:12px;">
+<h1 style="margin:0; font-size:21px; font-weight:700;">Dashboard</h1>
+<span style="font-size:13px; color:var(--mut);">{{ hoyLabel }}</span>
+</div>
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
+<sc-for list="{{ skel4 }}" as="s" hint-placeholder-count="4">
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; padding:18px; display:flex; flex-direction:column; gap:10px;">
+<div style="height:11px; width:60%; border-radius:4px; background:linear-gradient(90deg,var(--bd),var(--hv),var(--bd)); background-size:200% 100%; animation:sh 1.2s infinite;"></div>
+<div style="height:26px; width:40%; border-radius:4px; background:linear-gradient(90deg,var(--bd),var(--hv),var(--bd)); background-size:200% 100%; animation:sh 1.2s infinite;"></div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ errorSim }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display:flex; align-items:center; gap:12px; padding:14px 18px; background:rgba(179,65,58,.08); border:1px solid rgba(179,65,58,.3); border-radius:9px;">
+<span style="color:var(--dgr); font-size:16px;">⚠</span>
+<span style="flex:1; font-size:13.5px;">No se pudieron cargar los indicadores del dashboard.</span>
+<button onClick="{{ retry }}" style="height:34px; padding:0 14px; border:1px solid var(--dgr); border-radius:6px; background:transparent; color:var(--dgr); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="background:rgba(179,65,58,.1);">Reintentar</button>
+</div>
+</sc-if>
+<sc-if value="{{ dashReady }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ dashFull }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
+<sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; padding:17px 18px; display:flex; flex-direction:column; gap:5px;">
+<div style="font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); font-weight:600;">{{ k.label }}</div>
+<div style="font-size:26px; font-weight:700;">{{ k.value }}</div>
+<div style="font-size:12px; font-weight:600;" style="{{ k.subStyle }}">{{ k.sub }}</div>
+</div>
+</sc-for>
+</div>
+<div style="display:grid; grid-template-columns:1.2fr 1fr; gap:14px; align-items:start;">
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<div style="display:flex; align-items:center; gap:9px; padding:14px 18px; border-bottom:1px solid var(--bd);">
+<span style="font-size:14px; font-weight:700;">Préstamos con alerta</span>
+<span style="font-size:11.5px; font-weight:700; color:var(--dgr); background:rgba(179,65,58,.12); padding:2px 9px; border-radius:999px;">{{ nAlertas }}</span>
+</div>
+<sc-if value="{{ hasAlert }}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{ alertas }}" as="al" hint-placeholder-count="2">
+<div onClick="{{ al.go }}" role="button" tabIndex="0" style="display:flex; align-items:center; gap:12px; padding:12px 18px; border-bottom:1px solid var(--bd); cursor:pointer;" style-hover="background:var(--hv);">
+<span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--acc);">{{ al.codigo }}</span>
+<span style="flex:1; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ al.nombre }} → {{ al.quien }}</span>
+<span style="font-size:12px; color:var(--mut);">{{ al.fecha }}</span>
+<span style="{{ al.badgeStyle }}">{{ al.badgeIcon }} {{ al.badgeText }}</span>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{ noAlert }}" hint-placeholder-val="{{ false }}">
+<div style="padding:26px 18px; text-align:center; font-size:13px; color:var(--mut);">Sin préstamos vencidos ni por vencer.</div>
+</sc-if>
+</div>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<div style="padding:14px 18px; border-bottom:1px solid var(--bd); font-size:14px; font-weight:700;">Últimos movimientos</div>
+<sc-for list="{{ movs }}" as="m" hint-placeholder-count="5">
+<div style="display:flex; align-items:center; gap:11px; padding:11px 18px; border-bottom:1px solid var(--bd);">
+<span style="width:7px; height:7px; border-radius:50%; flex:none;" style="{{ m.dotStyle }}"></span>
+<span style="font-size:13px; font-weight:600; width:96px; flex:none;">{{ m.tipo }}</span>
+<span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--acc); flex:1;">{{ m.codigo }}</span>
+<span style="font-size:11.5px; color:var(--mut);">{{ m.fecha }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ dashCusto }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start;">
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<div style="padding:14px 18px; border-bottom:1px solid var(--bd); font-size:14px; font-weight:700;">Mis resguardos</div>
+<sc-if value="{{ hasMisResg }}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{ misResguardos }}" as="r" hint-placeholder-count="2">
+<div onClick="{{ r.go }}" role="button" tabIndex="0" style="display:flex; align-items:center; gap:12px; padding:12px 18px; border-bottom:1px solid var(--bd); cursor:pointer;" style-hover="background:var(--hv);">
+<span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--acc);">{{ r.codigo }}</span>
+<span style="flex:1; font-size:13px;">{{ r.nombre }}</span>
+<span style="font-size:12px; color:var(--mut);">desde {{ r.desde }}</span>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{ noMisResg }}" hint-placeholder-val="{{ false }}">
+<div style="padding:26px 18px; text-align:center; font-size:13px; color:var(--mut);">No tienes activos en resguardo.</div>
+</sc-if>
+</div>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<div style="padding:14px 18px; border-bottom:1px solid var(--bd); font-size:14px; font-weight:700;">Mis préstamos</div>
+<sc-if value="{{ hasMisPrest }}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{ misPrestamos }}" as="p" hint-placeholder-count="1">
+<div style="display:flex; align-items:center; gap:12px; padding:12px 18px; border-bottom:1px solid var(--bd);">
+<span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--acc);">{{ p.codigo }}</span>
+<span style="flex:1; font-size:13px;">{{ p.nombre }}</span>
+<span style="{{ p.badgeStyle }}">{{ p.badgeIcon }} {{ p.badgeText }}</span>
+<button onClick="{{ p.devolver }}" style="height:32px; padding:0 12px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--tx); font-size:12px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">Devolver</button>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{ noMisPrest }}" hint-placeholder-val="{{ false }}">
+<div style="padding:26px 18px; text-align:center; font-size:13px; color:var(--mut);">No tienes préstamos activos.</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+</sc-if>
+</div>
+</sc-if>
+
+<!-- ACTIVOS -->
+<sc-if value="{{ rActivos }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Lista de activos" style="max-width:1150px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+<div style="display:flex; align-items:center; gap:12px;">
+<h1 style="margin:0; font-size:21px; font-weight:700;">Activos</h1>
+<span style="font-size:13px; color:var(--mut);">{{ aCount }} registros</span>
+<div style="flex:1;"></div>
+<sc-if value="{{ canAdmin }}" hint-placeholder-val="{{ true }}">
+<button onClick="{{ newActivo }}" style="height:40px; padding:0 16px; border:none; border-radius:7px; background:var(--pri); color:#fff; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">+ Nuevo activo</button>
+</sc-if>
+</div>
+<div style="display:flex; gap:10px; flex-wrap:wrap;">
+<select value="{{ fEstado }}" onChange="{{ onFEstado }}" aria-label="Filtrar por estado" style="height:38px; padding:0 10px; border:1px solid var(--bd); border-radius:7px; background:var(--sf); color:var(--tx); font-size:13px;">
+<option value="todos">Estado: todos</option><option value="disponible">Disponible</option><option value="asignado">Asignado</option><option value="prestado">Prestado</option><option value="mantenimiento">Mantenimiento</option><option value="baja">Baja</option>
+</select>
+<select value="{{ fCat }}" onChange="{{ onFCat }}" aria-label="Filtrar por categoría" style="height:38px; padding:0 10px; border:1px solid var(--bd); border-radius:7px; background:var(--sf); color:var(--tx); font-size:13px;">
+<option value="0">Categoría: todas</option>
+<sc-for list="{{ catOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.nombre }}</option></sc-for>
+</select>
+<select value="{{ fOrg }}" onChange="{{ onFOrg }}" aria-label="Filtrar por organización" style="height:38px; padding:0 10px; border:1px solid var(--bd); border-radius:7px; background:var(--sf); color:var(--tx); font-size:13px;">
+<option value="0">Organización: todas</option>
+<sc-for list="{{ orgOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.nombre }}</option></sc-for>
+</select>
+</div>
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; padding:8px 18px;">
+<sc-for list="{{ skel6 }}" as="s" hint-placeholder-count="6">
+<div style="height:15px; margin:14px 0; border-radius:4px; background:linear-gradient(90deg,var(--bd),var(--hv),var(--bd)); background-size:200% 100%; animation:sh 1.2s infinite;"></div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ errorSim }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display:flex; align-items:center; gap:12px; padding:14px 18px; background:rgba(179,65,58,.08); border:1px solid rgba(179,65,58,.3); border-radius:9px;">
+<span style="color:var(--dgr); font-size:16px;">⚠</span>
+<span style="flex:1; font-size:13.5px;">Error al cargar los activos.</span>
+<button onClick="{{ retry }}" style="height:34px; padding:0 14px; border:1px solid var(--dgr); border-radius:6px; background:transparent; color:var(--dgr); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="background:rgba(179,65,58,.1);">Reintentar</button>
+</div>
+</sc-if>
+<sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--sf); border:1px dashed var(--bd); border-radius:10px; padding:52px 20px; display:flex; flex-direction:column; align-items:center; gap:10px;">
+<span style="font-size:24px; color:var(--mut);">▤</span>
+<div style="font-size:14.5px; font-weight:600;">No hay activos que coincidan</div>
+<div style="font-size:13px; color:var(--mut);">Ajusta la búsqueda o los filtros.</div>
+<button onClick="{{ clearFilters }}" style="height:36px; padding:0 14px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--acc); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc);">Limpiar filtros</button>
+</div>
+</sc-if>
+<sc-if value="{{ showTable }}" hint-placeholder-val="{{ true }}">
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<table style="width:100%; border-collapse:collapse; font-size:13px;">
+<thead><tr style="border-bottom:1px solid var(--bd);">
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Código</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Nombre</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Categoría</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Organización</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Estado</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Condición</th>
+<th style="text-align:right; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Valor</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{ aRows }}" as="r" hint-placeholder-count="5">
+<tr onClick="{{ r.go }}" tabIndex="0" style="border-bottom:1px solid var(--bd); cursor:pointer;" style-hover="background:var(--hv);">
+<td style="padding:12px 16px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--acc);">{{ r.codigo }}</td>
+<td style="padding:12px 16px; font-weight:600;">{{ r.nombre }}</td>
+<td style="padding:12px 16px; color:var(--mut);">{{ r.cat }}</td>
+<td style="padding:12px 16px; color:var(--mut);">{{ r.org }}</td>
+<td style="padding:12px 16px;"><span style="{{ r.badgeStyle }}">{{ r.badgeIcon }} {{ r.badgeText }}</span></td>
+<td style="padding:12px 16px; color:var(--mut); text-transform:capitalize;">{{ r.condicion }}</td>
+<td style="padding:12px 16px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12.5px;">{{ r.valor }}</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<!-- FICHA -->
+<sc-if value="{{ rFicha }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Ficha de activo" style="max-width:1150px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+<a href="#" onClick="{{ backActivos }}" style="font-size:13px; text-decoration:none; font-weight:600;">← Activos</a>
+<div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+<span style="font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:500; color:var(--acc);">{{ fa.codigo }}</span>
+<h1 style="margin:0; font-size:21px; font-weight:700;">{{ fa.nombre }}</h1>
+<span style="{{ fa.badgeStyle }}">{{ fa.badgeIcon }} {{ fa.badgeText }}</span>
+<div style="flex:1;"></div>
+<sc-if value="{{ canAdmin }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex; gap:8px; flex-wrap:wrap;">
+<sc-if value="{{ canAsignarBtn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openAsignar }}" style="height:38px; padding:0 14px; border:none; border-radius:7px; background:var(--pri); color:#fff; font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">Asignar</button></sc-if>
+<sc-if value="{{ canTransferirBtn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openTransferir }}" style="height:38px; padding:0 14px; border:none; border-radius:7px; background:var(--pri); color:#fff; font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">Transferir</button></sc-if>
+<sc-if value="{{ canPrestarBtn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openPrestar }}" style="height:38px; padding:0 14px; border:1px solid var(--bd); border-radius:7px; background:transparent; color:var(--tx); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">Prestar</button></sc-if>
+<button onClick="{{ goEtiqueta }}" style="height:38px; padding:0 14px; border:1px solid var(--bd); border-radius:7px; background:transparent; color:var(--tx); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">Etiqueta</button>
+<button onClick="{{ goEditar }}" style="height:38px; padding:0 14px; border:1px solid var(--bd); border-radius:7px; background:transparent; color:var(--tx); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">Editar</button>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{ isBaja }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:rgba(117,131,143,.1); border:1px solid var(--bd); border-radius:8px; font-size:13px; color:var(--mut);">✕ Activo dado de baja · Motivo: {{ bajaMotivo }}</div>
+</sc-if>
+<div style="display:grid; grid-template-columns:1.4fr 1fr; gap:14px; align-items:start;">
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; padding:20px;">
+<div style="font-size:14px; font-weight:700; margin-bottom:14px;">Información del activo</div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:13px 22px;">
+<sc-for list="{{ faFields }}" as="f" hint-placeholder-count="8">
+<div style="display:flex; flex-direction:column; gap:3px;">
+<span style="font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); font-weight:600;">{{ f.k }}</span>
+<span style="font-size:13.5px;">{{ f.v }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="display:flex; flex-direction:column; gap:14px;">
+<sc-if value="{{ hasResg }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; padding:18px; display:flex; flex-direction:column; gap:10px;">
+<div style="font-size:13px; font-weight:700; color:var(--acc);">◆ Resguardante actual</div>
+<div style="display:flex; align-items:center; gap:11px;">
+<div style="width:36px; height:36px; border-radius:50%; background:var(--pri); display:grid; place-items:center; font-size:13px; font-weight:700; color:#fff;">{{ resg.init }}</div>
+<div><div style="font-size:14px; font-weight:600;">{{ resg.nombre }}</div><div style="font-size:12px; color:var(--mut);">{{ resg.email }}</div></div>
+</div>
+<div style="font-size:12.5px; color:var(--mut);">Asignado el {{ resg.fecha }}<sc-if value="{{ resg.hasNotas }}" hint-placeholder-val="{{ false }}"> · {{ resg.notas }}</sc-if></div>
+<button onClick="{{ goCarta }}" style="height:36px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--acc); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc);">Ver carta responsiva</button>
+</div>
+</sc-if>
+<sc-if value="{{ hasPrest }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; padding:18px; display:flex; flex-direction:column; gap:10px;">
+<div style="display:flex; align-items:center; gap:8px;"><span style="font-size:13px; font-weight:700;">◐ Préstamo en curso</span><span style="{{ prest.badgeStyle }}">{{ prest.badgeIcon }} {{ prest.badgeText }}</span></div>
+<div style="font-size:13.5px;">Prestado a <strong>{{ prest.quien }}</strong></div>
+<div style="font-size:12.5px; color:var(--mut);">Salida: {{ prest.salida }} · Devolución esperada: {{ prest.esperada }}</div>
+<sc-if value="{{ canDevolver }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ prest.devolver }}" style="height:36px; border:none; border-radius:6px; background:var(--pri); color:#fff; font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">Registrar devolución</button>
+</sc-if>
+</div>
+</sc-if>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<div style="padding:13px 18px; border-bottom:1px solid var(--bd); font-size:13px; font-weight:700;">Historial</div>
+<sc-for list="{{ hist }}" as="h" hint-placeholder-count="3">
+<div style="display:flex; gap:11px; padding:11px 18px; border-bottom:1px solid var(--bd);">
+<span style="width:7px; height:7px; border-radius:50%; margin-top:5px; flex:none;" style="{{ h.dotStyle }}"></span>
+<div style="flex:1; min-width:0;">
+<div style="font-size:13px; font-weight:600;">{{ h.tipo }}<sc-if value="{{ h.hasQuien }}" hint-placeholder-val="{{ false }}"><span style="font-weight:400; color:var(--mut);"> → {{ h.quien }}</span></sc-if></div>
+<sc-if value="{{ h.hasNotas }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px; color:var(--mut);">{{ h.notas }}</div></sc-if>
+</div>
+<span style="font-size:11.5px; color:var(--mut); white-space:nowrap;">{{ h.fecha }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<!-- FORM ALTA/EDICIÓN -->
+<sc-if value="{{ rForm }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Alta/edición de activo" style="max-width:860px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+<a href="#" onClick="{{ backActivos }}" style="font-size:13px; text-decoration:none; font-weight:600;">← Activos</a>
+<div style="display:flex; align-items:center; gap:14px;">
+<h1 style="margin:0; font-size:21px; font-weight:700;">{{ fTitle }}</h1>
+<span style="font-family:'IBM Plex Mono',monospace; font-size:14px; color:var(--acc); background:var(--hv); padding:4px 12px; border-radius:6px;">{{ codigoPreview }}</span>
+</div>
+<sc-if value="{{ saveErr }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:rgba(179,65,58,.08); border:1px solid rgba(179,65,58,.3); border-radius:8px; font-size:13px; color:var(--dgr);">⚠ No se pudo guardar el activo. Intenta de nuevo.</div>
+</sc-if>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; padding:24px; display:grid; grid-template-columns:1fr 1fr; gap:16px 20px;">
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-nombre" style="font-size:12.5px; font-weight:600;">Nombre *</label>
+<input id="f-nombre" name="nombre" value="{{ f.nombre }}" onChange="{{ onF }}" aria-invalid="{{ fe.nombreB }}" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+<sc-if value="{{ fe.nombreB }}" hint-placeholder-val="{{ false }}"><span id="e-nombre" style="font-size:12px; color:var(--dgr);">{{ fe.nombre }}</span></sc-if>
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-cat" style="font-size:12.5px; font-weight:600;">Categoría *</label>
+<select id="f-cat" name="categoria_id" value="{{ f.categoria_id }}" onChange="{{ onF }}" style="height:42px; padding:0 10px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px;">
+<sc-for list="{{ catOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.nombre }}</option></sc-for>
+</select>
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-org" style="font-size:12.5px; font-weight:600;">Organización *</label>
+<select id="f-org" name="organizacion_id" value="{{ f.organizacion_id }}" onChange="{{ onF }}" style="height:42px; padding:0 10px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px;">
+<sc-for list="{{ orgOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.nombre }}</option></sc-for>
+</select>
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-serie" style="font-size:12.5px; font-weight:600;">Número de serie</label>
+<input id="f-serie" name="serie" value="{{ f.serie }}" onChange="{{ onF }}" aria-invalid="{{ fe.serieB }}" aria-describedby="e-serie" placeholder="SN-XXX-0000" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; font-family:'IBM Plex Mono',monospace; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+<sc-if value="{{ fe.serieB }}" hint-placeholder-val="{{ false }}"><span id="e-serie" style="font-size:12px; color:var(--dgr);">{{ fe.serie }}</span></sc-if>
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-marca" style="font-size:12.5px; font-weight:600;">Marca</label>
+<input id="f-marca" name="marca" value="{{ f.marca }}" onChange="{{ onF }}" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-modelo" style="font-size:12.5px; font-weight:600;">Modelo</label>
+<input id="f-modelo" name="modelo" value="{{ f.modelo }}" onChange="{{ onF }}" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-fecha" style="font-size:12.5px; font-weight:600;">Fecha de compra</label>
+<input id="f-fecha" name="fecha_compra" type="date" value="{{ f.fecha_compra }}" onChange="{{ onF }}" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-valor" style="font-size:12.5px; font-weight:600;">Valor de compra (MXN)</label>
+<input id="f-valor" name="valor_compra" type="number" value="{{ f.valor_compra }}" onChange="{{ onF }}" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-prov" style="font-size:12.5px; font-weight:600;">Proveedor</label>
+<input id="f-prov" name="proveedor" value="{{ f.proveedor }}" onChange="{{ onF }}" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-fact" style="font-size:12.5px; font-weight:600;">Número de factura</label>
+<input id="f-fact" name="factura_numero" value="{{ f.factura_numero }}" onChange="{{ onF }}" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-cond" style="font-size:12.5px; font-weight:600;">Condición</label>
+<select id="f-cond" name="condicion" value="{{ f.condicion }}" onChange="{{ onF }}" style="height:42px; padding:0 10px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px;">
+<option value="excelente">Excelente</option><option value="bueno">Bueno</option><option value="regular">Regular</option><option value="baja">Baja</option>
+</select>
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="f-desc" style="font-size:12.5px; font-weight:600;">Descripción</label>
+<input id="f-desc" name="descripcion" value="{{ f.descripcion }}" onChange="{{ onF }}" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<div style="grid-column:1/-1; display:flex; align-items:center; gap:10px; padding:11px 14px; background:var(--hv); border:1px dashed var(--bd); border-radius:7px; font-size:12.5px; color:var(--mut);">
+📎 Factura (PDF) — carga simulada en el demo
+</div>
+</div>
+<div style="display:flex; gap:10px;">
+<button onClick="{{ saveForm }}" disabled="{{ sending }}" style="height:44px; padding:0 22px; border:none; border-radius:7px; background:var(--pri); color:#fff; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">{{ saveLabel }}</button>
+<button onClick="{{ backActivos }}" style="height:44px; padding:0 18px; border:1px solid var(--bd); border-radius:7px; background:transparent; color:var(--tx); font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:var(--hv);">Cancelar</button>
+</div>
+</div>
+</sc-if>
+
+<!-- ETIQUETA -->
+<sc-if value="{{ rEtiqueta }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Etiqueta imprimible" style="max-width:860px; margin:0 auto; display:flex; flex-direction:column; gap:18px; align-items:center;">
+<div style="align-self:stretch; display:flex; align-items:center; gap:12px;">
+<a href="#" onClick="{{ backFicha }}" style="font-size:13px; text-decoration:none; font-weight:600;">← Ficha</a>
+<h1 style="margin:0; font-size:21px; font-weight:700;">Etiqueta</h1>
+<div style="flex:1;"></div>
+<button onClick="{{ printToast }}" style="height:40px; padding:0 16px; border:none; border-radius:7px; background:var(--pri); color:#fff; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">Imprimir</button>
+</div>
+<div style="background:#fff; color:#14212E; border:1px solid var(--bd); border-radius:12px; padding:28px; display:flex; gap:24px; align-items:center; box-shadow:0 2px 12px rgba(20,33,46,.08);">
+<div style="width:130px; height:130px; flex:none; border:2px solid #14212E; border-radius:6px; position:relative; background:repeating-linear-gradient(0deg,#14212E 0 5px,transparent 5px 10px), repeating-linear-gradient(90deg,#14212E 0 5px,#fff 5px 10px);">
+<div style="position:absolute; top:6px; left:6px; width:26px; height:26px; border:5px solid #14212E; background:#fff;"></div>
+<div style="position:absolute; top:6px; right:6px; width:26px; height:26px; border:5px solid #14212E; background:#fff;"></div>
+<div style="position:absolute; bottom:6px; left:6px; width:26px; height:26px; border:5px solid #14212E; background:#fff;"></div>
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<div style="font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:#5B6B7A; font-weight:700;">SiRe · Resguardo OSC</div>
+<div style="font-family:'IBM Plex Mono',monospace; font-size:26px; font-weight:500;">{{ et.codigo }}</div>
+<div style="font-size:14px; font-weight:600;">{{ et.nombre }}</div>
+<div style="font-size:12.5px; color:#5B6B7A;">{{ et.org }} · Serie: {{ et.serie }}</div>
+</div>
+</div>
+<div style="font-size:12px; color:var(--mut);">Vista previa · QR generado por el sistema en producción (RF-15/16)</div>
+</div>
+</sc-if>
+
+<!-- PRÉSTAMOS -->
+<sc-if value="{{ rPrestamos }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Préstamos" style="max-width:1150px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+<div style="display:flex; align-items:center; gap:12px;">
+<h1 style="margin:0; font-size:21px; font-weight:700;">Préstamos</h1>
+<div style="flex:1;"></div>
+<sc-if value="{{ canAdmin }}" hint-placeholder-val="{{ true }}">
+<button onClick="{{ openNuevoPrestamo }}" style="height:40px; padding:0 16px; border:none; border-radius:7px; background:var(--pri); color:#fff; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">+ Registrar préstamo</button>
+</sc-if>
+</div>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<table style="width:100%; border-collapse:collapse; font-size:13px;">
+<thead><tr style="border-bottom:1px solid var(--bd);">
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Activo</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Prestatario</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Salida</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Dev. esperada</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Estado</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Devuelto</th>
+<th style="padding:11px 16px;"></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{ pRows }}" as="p" hint-placeholder-count="2">
+<tr style="border-bottom:1px solid var(--bd);" style="{{ p.rowStyle }}">
+<td style="padding:12px 16px;"><span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--acc);">{{ p.codigo }}</span> <span style="font-weight:600;">{{ p.nombre }}</span></td>
+<td style="padding:12px 16px;">{{ p.quien }}</td>
+<td style="padding:12px 16px; color:var(--mut);">{{ p.salida }}</td>
+<td style="padding:12px 16px;" style="{{ p.espStyle }}">{{ p.esperada }}</td>
+<td style="padding:12px 16px;"><span style="{{ p.badgeStyle }}">{{ p.badgeIcon }} {{ p.badgeText }}</span></td>
+<td style="padding:12px 16px; color:var(--mut);">{{ p.devuelto }}</td>
+<td style="padding:12px 16px; text-align:right;">
+<sc-if value="{{ p.canDevolver }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ p.devolver }}" style="height:32px; padding:0 12px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--tx); font-size:12px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">Devolver</button>
+</sc-if>
+</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</div>
+</sc-if>
+
+<!-- CARTA RESPONSIVA -->
+<sc-if value="{{ rCarta }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Carta responsiva" style="max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+<div style="display:flex; align-items:center; gap:12px;">
+<a href="#" onClick="{{ backActivos }}" style="font-size:13px; text-decoration:none; font-weight:600;">← Volver</a>
+<h1 style="margin:0; font-size:21px; font-weight:700;">Carta responsiva</h1>
+<div style="flex:1;"></div>
+<button onClick="{{ printToast }}" style="height:40px; padding:0 16px; border:none; border-radius:7px; background:var(--pri); color:#fff; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">Imprimir</button>
+</div>
+<div style="background:#fff; color:#14212E; border:1px solid var(--bd); border-radius:10px; padding:44px 48px; display:flex; flex-direction:column; gap:22px; box-shadow:0 2px 12px rgba(20,33,46,.08);">
+<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #16334F; padding-bottom:16px;">
+<div style="display:flex; align-items:center; gap:9px;"><div style="width:30px; height:30px; border-radius:7px; background:#2E7D9A; display:grid; place-items:center; font-weight:700; font-size:13px; color:#fff;">S</div><span style="font-weight:700; font-size:15px;">SiRe · {{ carta.org }}</span></div>
+<span style="font-size:12.5px; color:#5B6B7A;">{{ carta.fecha }}</span>
+</div>
+<div style="text-align:center; font-size:16px; font-weight:700; letter-spacing:.04em;">CARTA RESPONSIVA DE RESGUARDO</div>
+<p style="margin:0; font-size:13.5px; line-height:1.7; text-wrap:pretty;">Quien suscribe, <strong>{{ carta.nombre }}</strong> ({{ carta.email }}), en su carácter de <strong>{{ carta.rol }}</strong> de {{ carta.org }}, declara recibir en resguardo los bienes listados a continuación, comprometiéndose a su cuidado, buen uso y devolución cuando le sea requerido.</p>
+<table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+<thead><tr>
+<th style="text-align:left; padding:8px 10px; border:1px solid #C6D2DE; background:#F2F6F9;">Código</th>
+<th style="text-align:left; padding:8px 10px; border:1px solid #C6D2DE; background:#F2F6F9;">Descripción</th>
+<th style="text-align:left; padding:8px 10px; border:1px solid #C6D2DE; background:#F2F6F9;">Serie</th>
+<th style="text-align:right; padding:8px 10px; border:1px solid #C6D2DE; background:#F2F6F9;">Valor</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{ carta.rows }}" as="cr" hint-placeholder-count="1">
+<tr>
+<td style="padding:8px 10px; border:1px solid #C6D2DE; font-family:'IBM Plex Mono',monospace;">{{ cr.codigo }}</td>
+<td style="padding:8px 10px; border:1px solid #C6D2DE;">{{ cr.nombre }}</td>
+<td style="padding:8px 10px; border:1px solid #C6D2DE; font-family:'IBM Plex Mono',monospace;">{{ cr.serie }}</td>
+<td style="padding:8px 10px; border:1px solid #C6D2DE; text-align:right;">{{ cr.valor }}</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+<div style="display:flex; justify-content:space-between; gap:40px; margin-top:36px;">
+<div style="flex:1; text-align:center;"><div style="border-top:1px solid #14212E; padding-top:8px; font-size:12.5px;"><strong>{{ carta.nombre }}</strong><br>Resguardante</div></div>
+<div style="flex:1; text-align:center;"><div style="border-top:1px solid #14212E; padding-top:8px; font-size:12.5px;"><strong>Administración</strong><br>{{ carta.org }}</div></div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<!-- CATÁLOGOS: ORGS / CATS / USUARIOS -->
+<sc-if value="{{ rOrgs }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Organizaciones" style="max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+<div style="display:flex; align-items:center; gap:12px;">
+<h1 style="margin:0; font-size:21px; font-weight:700;">Organizaciones</h1>
+<div style="flex:1;"></div>
+<button onClick="{{ newOrg }}" style="height:40px; padding:0 16px; border:none; border-radius:7px; background:var(--pri); color:#fff; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">+ Nueva</button>
+</div>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<table style="width:100%; border-collapse:collapse; font-size:13px;">
+<thead><tr style="border-bottom:1px solid var(--bd);">
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Nombre</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Clave</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Activos</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Estado</th>
+<th style="padding:11px 16px;"></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{ orgRows }}" as="o" hint-placeholder-count="3">
+<tr style="border-bottom:1px solid var(--bd);">
+<td style="padding:12px 16px; font-weight:600;">{{ o.nombre }}</td>
+<td style="padding:12px 16px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--acc);">{{ o.clave }}</td>
+<td style="padding:12px 16px; color:var(--mut);">{{ o.nActivos }}</td>
+<td style="padding:12px 16px;"><span style="{{ o.badgeStyle }}">{{ o.badgeIcon }} {{ o.badgeText }}</span></td>
+<td style="padding:12px 16px; text-align:right;"><button onClick="{{ o.toggle }}" style="height:32px; padding:0 12px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--tx); font-size:12px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">{{ o.toggleLabel }}</button></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ rCats }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Categorías" style="max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+<div style="display:flex; align-items:center; gap:12px;">
+<h1 style="margin:0; font-size:21px; font-weight:700;">Categorías</h1>
+<div style="flex:1;"></div>
+<button onClick="{{ newCat }}" style="height:40px; padding:0 16px; border:none; border-radius:7px; background:var(--pri); color:#fff; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">+ Nueva</button>
+</div>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<table style="width:100%; border-collapse:collapse; font-size:13px;">
+<thead><tr style="border-bottom:1px solid var(--bd);">
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Nombre</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Prefijo</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Activos</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Estado</th>
+<th style="padding:11px 16px;"></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{ catRows }}" as="c" hint-placeholder-count="3">
+<tr style="border-bottom:1px solid var(--bd);">
+<td style="padding:12px 16px; font-weight:600;">{{ c.nombre }}</td>
+<td style="padding:12px 16px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--acc);">{{ c.clave }}</td>
+<td style="padding:12px 16px; color:var(--mut);">{{ c.nActivos }}</td>
+<td style="padding:12px 16px;"><span style="{{ c.badgeStyle }}">{{ c.badgeIcon }} {{ c.badgeText }}</span></td>
+<td style="padding:12px 16px; text-align:right;"><button onClick="{{ c.toggle }}" style="height:32px; padding:0 12px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--tx); font-size:12px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">{{ c.toggleLabel }}</button></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ rUsers }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Usuarios" style="max-width:1000px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+<div style="display:flex; align-items:center; gap:12px;">
+<h1 style="margin:0; font-size:21px; font-weight:700;">Usuarios</h1>
+<div style="flex:1;"></div>
+<button onClick="{{ newUser }}" style="height:40px; padding:0 16px; border:none; border-radius:7px; background:var(--pri); color:#fff; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">+ Nuevo</button>
+</div>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<table style="width:100%; border-collapse:collapse; font-size:13px;">
+<thead><tr style="border-bottom:1px solid var(--bd);">
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Usuario</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Rol</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Organización</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Resguardos</th>
+<th style="text-align:left; padding:11px 16px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Estado</th>
+<th style="padding:11px 16px;"></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{ userRows }}" as="u" hint-placeholder-count="5">
+<tr style="border-bottom:1px solid var(--bd);">
+<td style="padding:12px 16px;"><div style="display:flex; align-items:center; gap:10px;"><div style="width:30px; height:30px; border-radius:50%; background:var(--pri); display:grid; place-items:center; font-size:11px; font-weight:700; color:#fff; flex:none;">{{ u.init }}</div><div><div style="font-weight:600;">{{ u.nombre }}</div><div style="font-size:12px; color:var(--mut);">{{ u.email }}</div></div></div></td>
+<td style="padding:12px 16px;">{{ u.rol }}</td>
+<td style="padding:12px 16px; color:var(--mut);">{{ u.org }}</td>
+<td style="padding:12px 16px; color:var(--mut);">{{ u.nResg }}</td>
+<td style="padding:12px 16px;"><span style="{{ u.badgeStyle }}">{{ u.badgeIcon }} {{ u.badgeText }}</span></td>
+<td style="padding:12px 16px; text-align:right;"><button onClick="{{ u.toggle }}" style="height:32px; padding:0 12px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--tx); font-size:12px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">{{ u.toggleLabel }}</button></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</div>
+</sc-if>
+
+<!-- REPORTES -->
+<sc-if value="{{ rReportes }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Reportes" style="max-width:1150px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+<h1 style="margin:0; font-size:21px; font-weight:700;">Reportes</h1>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start;">
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<div style="display:flex; align-items:center; gap:12px; padding:14px 18px; border-bottom:1px solid var(--bd);">
+<span style="font-size:14px; font-weight:700; flex:1;">Inventario valorizado</span>
+<select value="{{ repOrg }}" onChange="{{ onRepOrg }}" aria-label="Organización del reporte" style="height:34px; padding:0 8px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:12.5px;">
+<option value="0">Todas las organizaciones</option>
+<sc-for list="{{ orgOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.nombre }}</option></sc-for>
+</select>
+</div>
+<table style="width:100%; border-collapse:collapse; font-size:13px;">
+<thead><tr style="border-bottom:1px solid var(--bd);">
+<th style="text-align:left; padding:10px 18px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Categoría</th>
+<th style="text-align:right; padding:10px 18px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Activos</th>
+<th style="text-align:right; padding:10px 18px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Valor</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{ repRows }}" as="r" hint-placeholder-count="3">
+<tr style="border-bottom:1px solid var(--bd);">
+<td style="padding:11px 18px; font-weight:600;">{{ r.cat }}</td>
+<td style="padding:11px 18px; text-align:right;">{{ r.n }}</td>
+<td style="padding:11px 18px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12.5px;">{{ r.valor }}</td>
+</tr>
+</sc-for>
+<tr>
+<td style="padding:12px 18px; font-weight:700;">Total</td>
+<td style="padding:12px 18px; text-align:right; font-weight:700;">{{ repTotalN }}</td>
+<td style="padding:12px 18px; text-align:right; font-weight:700; font-family:'IBM Plex Mono',monospace; font-size:12.5px;">{{ repTotalV }}</td>
+</tr>
+</tbody>
+</table>
+<div style="display:flex; gap:8px; padding:14px 18px; border-top:1px solid var(--bd);">
+<button onClick="{{ exportToast }}" style="height:34px; padding:0 14px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--tx); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">Exportar PDF</button>
+<button onClick="{{ exportToast }}" style="height:34px; padding:0 14px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--tx); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">Exportar Excel</button>
+</div>
+</div>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; overflow:hidden;">
+<div style="padding:14px 18px; border-bottom:1px solid var(--bd); font-size:14px; font-weight:700;">Resguardos por custodio</div>
+<table style="width:100%; border-collapse:collapse; font-size:13px;">
+<thead><tr style="border-bottom:1px solid var(--bd);">
+<th style="text-align:left; padding:10px 18px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Custodio</th>
+<th style="text-align:right; padding:10px 18px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Activos</th>
+<th style="text-align:right; padding:10px 18px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);">Valor en resguardo</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{ repCustRows }}" as="r" hint-placeholder-count="2">
+<tr style="border-bottom:1px solid var(--bd);">
+<td style="padding:11px 18px; font-weight:600;">{{ r.nombre }}</td>
+<td style="padding:11px 18px; text-align:right;">{{ r.n }}</td>
+<td style="padding:11px 18px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12.5px;">{{ r.valor }}</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+<div style="display:flex; gap:8px; padding:14px 18px; border-top:1px solid var(--bd);">
+<button onClick="{{ exportToast }}" style="height:34px; padding:0 14px; border:1px solid var(--bd); border-radius:6px; background:transparent; color:var(--tx); font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">Exportar PDF</button>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<!-- PERFIL -->
+<sc-if value="{{ rPerfil }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Perfil" style="max-width:640px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+<h1 style="margin:0; font-size:21px; font-weight:700;">Perfil</h1>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; padding:24px; display:flex; align-items:center; gap:16px;">
+<div style="width:56px; height:56px; border-radius:50%; background:var(--pri); display:grid; place-items:center; font-size:19px; font-weight:700; color:#fff;">{{ userInit }}</div>
+<div style="flex:1;">
+<div style="font-size:17px; font-weight:700;">{{ userName }}</div>
+<div style="font-size:13px; color:var(--mut);">{{ userEmail }}</div>
+</div>
+<div style="text-align:right;">
+<div style="font-size:13px; font-weight:600;">{{ userRolLabel }}</div>
+<div style="font-size:12.5px; color:var(--mut);">{{ userOrg }}</div>
+</div>
+</div>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; padding:20px 24px; display:flex; align-items:center; gap:14px;">
+<div style="flex:1;">
+<div style="font-size:14px; font-weight:600;">Tema de la interfaz</div>
+<div style="font-size:12.5px; color:var(--mut);">Claro / oscuro · por defecto sigue la preferencia del sistema</div>
+</div>
+<button onClick="{{ toggleTheme }}" style="height:38px; padding:0 16px; border:1px solid var(--bd); border-radius:7px; background:transparent; color:var(--tx); font-size:13px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--acc); color:var(--acc);">{{ themeLabel }}</button>
+</div>
+<div style="background:var(--sf); border:1px solid var(--bd); border-radius:10px; padding:20px 24px; display:flex; align-items:center; gap:14px;">
+<div style="flex:1;">
+<div style="font-size:14px; font-weight:600;">Sesión</div>
+<div style="font-size:12.5px; color:var(--mut);">Cerrar la sesión actual del demo</div>
+</div>
+<button onClick="{{ logout }}" style="height:38px; padding:0 16px; border:1px solid rgba(179,65,58,.4); border-radius:7px; background:transparent; color:var(--dgr); font-size:13px; font-weight:600; cursor:pointer;" style-hover="background:rgba(179,65,58,.08);">Cerrar sesión</button>
+</div>
+</div>
+</sc-if>
+
+</main>
+</div>
+</div>
+
+<!-- MODAL -->
+<sc-if value="{{ mOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed; inset:0; background:rgba(10,20,30,.5); display:grid; place-items:center; z-index:50;" onClick="{{ closeM }}">
+<div role="dialog" aria-modal="true" aria-label="{{ mTitle }}" onClick="{{ stopProp }}" style="width:440px; max-width:92vw; background:var(--sf); color:var(--tx); border:1px solid var(--bd); border-radius:12px; padding:24px; display:flex; flex-direction:column; gap:16px; box-shadow:0 12px 40px rgba(10,20,30,.3);">
+<div style="display:flex; align-items:center;">
+<div style="font-size:16px; font-weight:700; flex:1;">{{ mTitle }}</div>
+<button onClick="{{ closeM }}" aria-label="Cerrar" style="width:30px; height:30px; border:none; background:transparent; color:var(--mut); font-size:16px; cursor:pointer; border-radius:6px;" style-hover="background:var(--hv);">✕</button>
+</div>
+<sc-if value="{{ mHasPre }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex; align-items:center; gap:9px; padding:10px 13px; background:var(--hv); border:1px solid var(--bd); border-radius:7px; font-size:12.5px; color:var(--mut);">ⓘ {{ mPre }}</div>
+</sc-if>
+<sc-if value="{{ mHasErr }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display:flex; align-items:center; gap:9px; padding:10px 13px; background:rgba(179,65,58,.1); border:1px solid rgba(179,65,58,.3); border-radius:7px; font-size:12.5px; color:var(--dgr);">⚠ {{ mErr }}</div>
+</sc-if>
+<sc-if value="{{ mIsPersona }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="m-usuario" style="font-size:12.5px; font-weight:600;">{{ mPersonaLabel }}</label>
+<select id="m-usuario" name="usuario" value="{{ mSel.usuario }}" onChange="{{ onM }}" style="height:42px; padding:0 10px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px;">
+<sc-for list="{{ mUserOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.nombre }} — {{ o.org }}</option></sc-for>
+</select>
+</div>
+</sc-if>
+<sc-if value="{{ mIsPrestar }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="m-activo" style="font-size:12.5px; font-weight:600;">Activo (solo disponibles)</label>
+<select id="m-activo" name="activo" value="{{ mSel.activo }}" onChange="{{ onM }}" style="height:42px; padding:0 10px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px;">
+<sc-for list="{{ mActivoOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.id }}">{{ o.codigo }} · {{ o.nombre }}</option></sc-for>
+</select>
+<div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+<label for="m-fecha" style="font-size:12.5px; font-weight:600;">Devolución esperada</label>
+<input id="m-fecha" name="fecha" type="date" value="{{ mSel.fecha }}" onChange="{{ onM }}" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ mIsDevolver }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="m-cond" style="font-size:12.5px; font-weight:600;">Condición al devolver</label>
+<select id="m-cond" name="condicion" value="{{ mSel.condicion }}" onChange="{{ onM }}" style="height:42px; padding:0 10px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px;">
+<option value="excelente">Excelente</option><option value="bueno">Bueno</option><option value="regular">Regular</option><option value="baja">Dañado</option>
+</select>
+</div>
+</sc-if>
+<sc-if value="{{ mIsCatalogo }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="m-nombre" style="font-size:12.5px; font-weight:600;">Nombre</label>
+<input id="m-nombre" name="nombre" value="{{ mSel.nombre }}" onChange="{{ onM }}" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="m-clave" style="font-size:12.5px; font-weight:600;">Clave (3 letras)</label>
+<input id="m-clave" name="clave" value="{{ mSel.clave }}" onChange="{{ onM }}" placeholder="ABC" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; font-family:'IBM Plex Mono',monospace; text-transform:uppercase; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+</sc-if>
+<sc-if value="{{ mIsUser }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="mu-nombre" style="font-size:12.5px; font-weight:600;">Nombre</label>
+<input id="mu-nombre" name="nombre" value="{{ mSel.nombre }}" onChange="{{ onM }}" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="mu-email" style="font-size:12.5px; font-weight:600;">Correo</label>
+<input id="mu-email" name="email" type="email" value="{{ mSel.email }}" onChange="{{ onM }}" placeholder="nombre@demo.test" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+<div style="display:flex; gap:12px;">
+<div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+<label for="mu-rol" style="font-size:12.5px; font-weight:600;">Rol</label>
+<select id="mu-rol" name="rol" value="{{ mSel.rol }}" onChange="{{ onM }}" style="height:42px; padding:0 10px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px;">
+<option value="administrador">Administrador</option><option value="custodio">Custodio</option><option value="auditor">Auditor</option>
+</select>
+</div>
+<div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+<label for="mu-org" style="font-size:12.5px; font-weight:600;">Organización</label>
+<select id="mu-org" name="organizacion_id" value="{{ mSel.organizacion_id }}" onChange="{{ onM }}" style="height:42px; padding:0 10px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px;">
+<sc-for list="{{ orgOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.nombre }}</option></sc-for>
+</select>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ mHasNotas }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex; flex-direction:column; gap:6px;">
+<label for="m-notas" style="font-size:12.5px; font-weight:600;">Notas</label>
+<input id="m-notas" name="notas" value="{{ mSel.notas }}" onChange="{{ onM }}" placeholder="Opcional" style="height:42px; padding:0 13px; border:1px solid var(--bd); border-radius:6px; background:var(--sf); color:var(--tx); font-size:13.5px; outline:none;" style-focus="border-color:var(--acc); box-shadow:0 0 0 3px var(--ring);">
+</div>
+</sc-if>
+<div style="display:flex; gap:10px; justify-content:flex-end; padding-top:4px;">
+<button onClick="{{ closeM }}" style="height:40px; padding:0 16px; border:1px solid var(--bd); border-radius:7px; background:transparent; color:var(--tx); font-size:13px; font-weight:600; cursor:pointer;" style-hover="background:var(--hv);">Cancelar</button>
+<button onClick="{{ confirmM }}" disabled="{{ sending }}" style="height:40px; padding:0 18px; border:none; border-radius:7px; background:var(--pri); color:#fff; font-size:13px; font-weight:600; cursor:pointer;" style-hover="background:var(--prih);">{{ mConfirmLabel }}</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<!-- TOAST -->
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+<div role="status" style="position:fixed; bottom:24px; right:24px; z-index:60; background:#16334F; color:#fff; padding:12px 18px; border-radius:9px; font-size:13.5px; font-weight:500; box-shadow:0 8px 24px rgba(10,20,30,.3); display:flex; align-items:center; gap:9px;">✓ {{ toastMsg }}</div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;simulateLoading&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Estados demo&quot;}, &quot;simulateError&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Estados demo&quot;}}">
+class Component extends DCLogic {
+  static SEED = {
+    organizaciones: [
+      { id: 1, nombre: "Avanza Juárez", clave: "AVZ", is_active: true },
+      { id: 2, nombre: "Red Comunitaria", clave: "RCM", is_active: true },
+      { id: 3, nombre: "Fondo Ciudadano", clave: "FCD", is_active: false }
+    ],
+    categorias: [
+      { id: 1, nombre: "Cómputo", clave: "CMP", is_active: true },
+      { id: 2, nombre: "Mobiliario", clave: "MOB", is_active: true },
+      { id: 3, nombre: "Audio y Video", clave: "AUV", is_active: true }
+    ],
+    usuarios: [
+      { id: 1, organizacion_id: 1, nombre: "Admin Demo", email: "admin@demo.test", rol: "administrador", is_active: true },
+      { id: 2, organizacion_id: 1, nombre: "Custodio Uno", email: "custodio1@demo.test", rol: "custodio", is_active: true },
+      { id: 3, organizacion_id: 2, nombre: "Custodio Dos", email: "custodio2@demo.test", rol: "custodio", is_active: true },
+      { id: 4, organizacion_id: 2, nombre: "Auditor Demo", email: "auditor@demo.test", rol: "auditor", is_active: true },
+      { id: 5, organizacion_id: 1, nombre: "Custodio Inactivo", email: "inactivo@demo.test", rol: "custodio", is_active: false }
+    ],
+    secuencias_codigo: [
+      { categoria_id: 1, organizacion_id: 1, ultimo: 2 },
+      { categoria_id: 1, organizacion_id: 2, ultimo: 1 },
+      { categoria_id: 2, organizacion_id: 1, ultimo: 1 },
+      { categoria_id: 3, organizacion_id: 2, ultimo: 1 }
+    ],
+    activos: [
+      { id: 1, codigo: "CMP-AVZ-001", categoria_id: 1, organizacion_id: 1, nombre: "Laptop Dell Latitude 5440", descripcion: "Equipo de oficina", marca: "Dell", modelo: "5440", serie: "SN-AVZ-8842", fecha_compra: "2025-11-10", valor_compra: 18500, proveedor: "CompuMundo", factura_numero: "F-2025-1120", condicion: "excelente", estado: "asignado", baja_motivo: null },
+      { id: 2, codigo: "CMP-AVZ-002", categoria_id: 1, organizacion_id: 1, nombre: "Monitor LG 24\"", descripcion: null, marca: "LG", modelo: "24MK600", serie: "SN-AVZ-1290", fecha_compra: "2025-11-10", valor_compra: 3200, proveedor: "CompuMundo", factura_numero: "F-2025-1120", condicion: "bueno", estado: "disponible", baja_motivo: null },
+      { id: 3, codigo: "CMP-RCM-001", categoria_id: 1, organizacion_id: 2, nombre: "Laptop HP ProBook", descripcion: "Equipo de campo", marca: "HP", modelo: "450 G9", serie: "SN-RCM-5511", fecha_compra: "2026-01-15", valor_compra: 16900, proveedor: "Tecno Norte", factura_numero: "TN-88", condicion: "bueno", estado: "prestado", baja_motivo: null },
+      { id: 4, codigo: "MOB-AVZ-001", categoria_id: 2, organizacion_id: 1, nombre: "Silla ergonómica", descripcion: null, marca: "Ofimax", modelo: "Ergo-2", serie: null, fecha_compra: "2025-09-01", valor_compra: 2400, proveedor: "Muebles del Norte", factura_numero: null, condicion: "regular", estado: "mantenimiento", baja_motivo: null },
+      { id: 5, codigo: "AUV-RCM-001", categoria_id: 3, organizacion_id: 2, nombre: "Proyector Epson", descripcion: "Sala de juntas", marca: "Epson", modelo: "E20", serie: "SN-RCM-7777", fecha_compra: "2024-06-20", valor_compra: 9800, proveedor: "Tecno Norte", factura_numero: "TN-40", condicion: "baja", estado: "baja", baja_motivo: "Daño irreparable en lámpara" }
+    ],
+    asignaciones: [
+      { id: 1, activo_id: 1, usuario_id: 2, organizacion_id: 1, asignada_en: "2026-07-05 09:30:00", asignada_por: 1, revocada_en: null, notas: "Resguardo de oficina" }
+    ],
+    prestamos: [
+      { id: 1, activo_id: 3, prestatario_id: 3, prestado_por: 1, prestado_en: "2026-07-12 10:00:00", devolucion_esperada: "2026-07-16 18:00:00", devuelto_en: null, condicion_prestamo: "bueno", condicion_devolucion: null, notas: "Salida a campo" }
+    ],
+    movimientos: [
+      { id: 1, activo_id: 1, tipo: "alta", a_usuario_id: null, realizado_por: 1, notas: null, creado_en: "2026-07-03 11:00:00" },
+      { id: 2, activo_id: 1, tipo: "asignacion", a_usuario_id: 2, realizado_por: 1, notas: "Resguardo de oficina", creado_en: "2026-07-05 09:30:00" },
+      { id: 3, activo_id: 3, tipo: "alta", a_usuario_id: null, realizado_por: 1, notas: null, creado_en: "2026-07-03 11:10:00" },
+      { id: 4, activo_id: 3, tipo: "prestamo", a_usuario_id: 3, realizado_por: 1, notas: "Salida a campo", creado_en: "2026-07-12 10:00:00" },
+      { id: 5, activo_id: 4, tipo: "mantenimiento", a_usuario_id: null, realizado_por: 1, notas: "Revisión de base", creado_en: "2026-07-14 09:00:00" },
+      { id: 6, activo_id: 5, tipo: "baja", a_usuario_id: null, realizado_por: 1, notas: "Daño irreparable en lámpara", creado_en: "2026-07-13 16:00:00" }
+    ]
+  };
+
+  state = {
+    route: "login", param: null, userId: null,
+    theme: (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light",
+    loginEmail: "", loginErr: null,
+    search: "", fEstado: "todos", fCat: "0", fOrg: "0",
+    form: null, fErr: {}, sending: false, saveErr: false,
+    modal: null, mSel: {}, mErr: null,
+    toast: null,
+    data: JSON.parse(JSON.stringify(Component.SEED))
+  };
+
+  go(route, param) { this.setState({ route, param: param == null ? null : param, modal: null, mErr: null, saveErr: false }); }
+  get d() { return this.state.data; }
+  org(id) { return this.d.organizaciones.find(o => o.id === Number(id)); }
+  cat(id) { return this.d.categorias.find(c => c.id === Number(id)); }
+  usr(id) { return this.d.usuarios.find(u => u.id === Number(id)); }
+  me() { return this.usr(this.state.userId); }
+  fmtD(s) { return s ? String(s).slice(0, 10) : "—"; }
+  money(n) { return n == null ? "—" : "$" + Number(n).toLocaleString("es-MX", { minimumFractionDigits: 2 }); }
+  stamp() { const d = new Date(), p = x => String(x).padStart(2, "0"); return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()); }
+  nextId(arr) { return arr.reduce((m, x) => Math.max(m, x.id), 0) + 1; }
+
+  BADGES = {
+    disponible: { t: "Disponible", i: "●", fg: "#2E7D5A", bg: "rgba(46,125,90,.14)" },
+    asignado: { t: "Asignado", i: "◆", fg: "#2E7D9A", bg: "rgba(46,125,154,.14)" },
+    prestado: { t: "Prestado", i: "◐", fg: "#B07A1E", bg: "rgba(192,138,45,.16)" },
+    mantenimiento: { t: "Mantenimiento", i: "✦", fg: "#7A5EA6", bg: "rgba(122,94,166,.15)" },
+    baja: { t: "Baja", i: "✕", fg: "#75838F", bg: "rgba(117,131,143,.15)" },
+    p_activo: { t: "Activo", i: "●", fg: "#2E7D9A", bg: "rgba(46,125,154,.14)" },
+    p_vencido: { t: "Vencido", i: "⚠", fg: "#B3413A", bg: "rgba(179,65,58,.14)" },
+    p_devuelto: { t: "Devuelto", i: "✓", fg: "#2E7D5A", bg: "rgba(46,125,90,.14)" },
+    on: { t: "Activa", i: "●", fg: "#2E7D5A", bg: "rgba(46,125,90,.14)" },
+    off: { t: "Inactiva", i: "✕", fg: "#75838F", bg: "rgba(117,131,143,.15)" }
+  };
+  badgeStyle(b) { return { display: "inline-flex", alignItems: "center", gap: "6px", padding: "3px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: 600, color: b.fg, background: b.bg, whiteSpace: "nowrap" }; }
+  badge3(key) { const b = this.BADGES[key]; return { badgeStyle: this.badgeStyle(b), badgeIcon: b.i, badgeText: b.t }; }
+  pEstado(p) { if (p.devuelto_en) return "devuelto"; return new Date(p.devolucion_esperada.replace(" ", "T")) < new Date() ? "vencido" : "activo"; }
+  TIPOS = { alta: "Alta", asignacion: "Asignación", transferencia: "Transferencia", prestamo: "Préstamo", devolucion: "Devolución", mantenimiento: "Mantenimiento", baja: "Baja" };
+  dotColor(tipo) { return { alta: "#2E7D5A", asignacion: "#2E7D9A", transferencia: "#2E7D9A", prestamo: "#B07A1E", devolucion: "#2E7D5A", mantenimiento: "#7A5EA6", baja: "#75838F" }[tipo] || "#5B6B7A"; }
+
+  showToast(msg) { clearTimeout(this._tt); this.setState({ toast: msg }); this._tt = setTimeout(() => this.setState({ toast: null }), 2600); }
+  mut(fn) { const data = JSON.parse(JSON.stringify(this.state.data)); fn(data); this.setState({ data }); }
+
+  doLoginEmail = () => {
+    const u = this.d.usuarios.find(x => x.email.toLowerCase() === this.state.loginEmail.trim().toLowerCase() && x.is_active);
+    if (!u) { this.setState({ loginErr: "Usuario no encontrado o inactivo. Usa un correo @demo.test o el acceso rápido." }); return; }
+    this.setState({ userId: u.id, route: "dashboard", loginErr: null });
+  };
+  loginAs(id) { this.setState({ userId: id, route: "dashboard", loginErr: null }); }
+  logoutFn = () => this.setState({ userId: null, route: "login", loginEmail: "", loginErr: null });
+
+  openModal(modal, mSel) { this.setState({ modal, mSel: mSel || {}, mErr: null }); }
+  closeMFn = () => this.setState({ modal: null, mErr: null });
+
+  confirmMFn = () => {
+    const { modal, mSel } = this.state;
+    const simErr = !!this.props.simulateError;
+    const finish = (fn, msg) => {
+      this.setState({ sending: true });
+      setTimeout(() => { this.setState({ sending: false }); fn(); this.showToast(msg); }, 600);
+    };
+    if (modal === "asignar" || modal === "transferir") {
+      const a = this.d.activos.find(x => x.id === Number(mSel.activo_id));
+      if (simErr || (modal === "asignar" && a.estado !== "disponible")) { this.setState({ mErr: "409 · El activo ya no está disponible para asignación." }); return; }
+      const uid = Number(mSel.usuario || this.firstUserOpt());
+      finish(() => this.mut(d => {
+        const act = d.activos.find(x => x.id === a.id);
+        const prev = d.asignaciones.find(x => x.activo_id === a.id && !x.revocada_en);
+        if (prev) { prev.revocada_en = this.stamp(); }
+        d.asignaciones.push({ id: this.nextId(d.asignaciones), activo_id: a.id, usuario_id: uid, organizacion_id: act.organizacion_id, asignada_en: this.stamp(), asignada_por: this.state.userId, revocada_en: null, notas: mSel.notas || null });
+        act.estado = "asignado";
+        d.movimientos.push({ id: this.nextId(d.movimientos), activo_id: a.id, tipo: modal === "asignar" ? "asignacion" : "transferencia", a_usuario_id: uid, realizado_por: this.state.userId, notas: mSel.notas || null, creado_en: this.stamp() });
+        this.setState({ modal: null });
+      }), modal === "asignar" ? "Activo asignado" : "Activo transferido");
+    } else if (modal === "prestar") {
+      const aid = Number(mSel.activo || mSel.activo_id || this.firstActivoOpt());
+      const a = this.d.activos.find(x => x.id === aid);
+      if (simErr || !a || a.estado !== "disponible") { this.setState({ mErr: "409 · El activo no está disponible para préstamo." }); return; }
+      const uid = Number(mSel.usuario || this.firstUserOpt());
+      finish(() => this.mut(d => {
+        const act = d.activos.find(x => x.id === aid);
+        act.estado = "prestado";
+        d.prestamos.push({ id: this.nextId(d.prestamos), activo_id: aid, prestatario_id: uid, prestado_por: this.state.userId, prestado_en: this.stamp(), devolucion_esperada: (mSel.fecha || this.defaultFecha()) + " 18:00:00", devuelto_en: null, condicion_prestamo: act.condicion, condicion_devolucion: null, notas: mSel.notas || null });
+        d.movimientos.push({ id: this.nextId(d.movimientos), activo_id: aid, tipo: "prestamo", a_usuario_id: uid, realizado_por: this.state.userId, notas: mSel.notas || null, creado_en: this.stamp() });
+        this.setState({ modal: null });
+      }), "Préstamo registrado");
+    } else if (modal === "devolver") {
+      finish(() => this.mut(d => {
+        const p = d.prestamos.find(x => x.id === Number(mSel.prestamo_id));
+        p.devuelto_en = this.stamp(); p.condicion_devolucion = mSel.condicion || "bueno";
+        const act = d.activos.find(x => x.id === p.activo_id);
+        const asg = d.asignaciones.find(x => x.activo_id === act.id && !x.revocada_en);
+        act.estado = asg ? "asignado" : "disponible";
+        d.movimientos.push({ id: this.nextId(d.movimientos), activo_id: act.id, tipo: "devolucion", a_usuario_id: null, realizado_por: this.state.userId, notas: mSel.notas || null, creado_en: this.stamp() });
+        this.setState({ modal: null });
+      }), "Devolución registrada");
+    } else if (modal === "org" || modal === "cat") {
+      if (!mSel.nombre || !mSel.clave) { this.setState({ mErr: "Nombre y clave son obligatorios." }); return; }
+      finish(() => this.mut(d => {
+        const arr = modal === "org" ? d.organizaciones : d.categorias;
+        arr.push({ id: this.nextId(arr), nombre: mSel.nombre, clave: String(mSel.clave).toUpperCase().slice(0, 3), is_active: true });
+        this.setState({ modal: null });
+      }), modal === "org" ? "Organización creada" : "Categoría creada");
+    } else if (modal === "user") {
+      if (!mSel.nombre || !mSel.email) { this.setState({ mErr: "Nombre y correo son obligatorios." }); return; }
+      finish(() => this.mut(d => {
+        d.usuarios.push({ id: this.nextId(d.usuarios), organizacion_id: Number(mSel.organizacion_id || 1), nombre: mSel.nombre, email: mSel.email, rol: mSel.rol || "custodio", is_active: true });
+        this.setState({ modal: null });
+      }), "Usuario creado");
+    }
+  };
+
+  firstUserOpt() { const me = this.me(); return (this.d.usuarios.filter(u => u.is_active && u.rol !== "auditor" && u.id !== null)[0] || {}).id; }
+  firstActivoOpt() { return (this.d.activos.filter(a => a.estado === "disponible")[0] || {}).id; }
+  defaultFecha() { const d = new Date(Date.now() + 3 * 864e5), p = x => String(x).padStart(2, "0"); return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }
+
+  blankForm() { return { id: null, nombre: "", categoria_id: "1", organizacion_id: "1", serie: "", marca: "", modelo: "", fecha_compra: "", valor_compra: "", proveedor: "", factura_numero: "", condicion: "bueno", descripcion: "" }; }
+
+  saveFormFn = () => {
+    const f = this.state.form, fe = {};
+    if (!f.nombre.trim()) fe.nombre = "El nombre es obligatorio.";
+    if (f.serie && this.d.activos.some(a => a.serie === f.serie && a.id !== f.id)) fe.serie = "Ya existe un activo con este número de serie.";
+    if (Object.keys(fe).length) { this.setState({ fErr: fe }); return; }
+    if (this.props.simulateError) { this.setState({ saveErr: true }); return; }
+    this.setState({ sending: true });
+    setTimeout(() => {
+      this.mut(d => {
+        if (f.id) {
+          const a = d.activos.find(x => x.id === f.id);
+          Object.assign(a, { nombre: f.nombre, categoria_id: Number(f.categoria_id), organizacion_id: Number(f.organizacion_id), serie: f.serie || null, marca: f.marca || null, modelo: f.modelo || null, fecha_compra: f.fecha_compra || null, valor_compra: f.valor_compra ? Number(f.valor_compra) : null, proveedor: f.proveedor || null, factura_numero: f.factura_numero || null, condicion: f.condicion, descripcion: f.descripcion || null });
+          this.setState({ sending: false, route: "ficha", param: f.id, form: null });
+        } else {
+          const cid = Number(f.categoria_id), oid = Number(f.organizacion_id);
+          let seq = d.secuencias_codigo.find(s => s.categoria_id === cid && s.organizacion_id === oid);
+          if (!seq) { seq = { categoria_id: cid, organizacion_id: oid, ultimo: 0 }; d.secuencias_codigo.push(seq); }
+          seq.ultimo += 1;
+          const codigo = this.cat(cid).clave + "-" + this.org(oid).clave + "-" + String(seq.ultimo).padStart(3, "0");
+          const id = this.nextId(d.activos);
+          d.activos.push({ id, codigo, categoria_id: cid, organizacion_id: oid, nombre: f.nombre, descripcion: f.descripcion || null, marca: f.marca || null, modelo: f.modelo || null, serie: f.serie || null, fecha_compra: f.fecha_compra || null, valor_compra: f.valor_compra ? Number(f.valor_compra) : null, proveedor: f.proveedor || null, factura_numero: f.factura_numero || null, condicion: f.condicion, estado: "disponible", baja_motivo: null });
+          d.movimientos.push({ id: this.nextId(d.movimientos), activo_id: id, tipo: "alta", a_usuario_id: null, realizado_por: this.state.userId, notas: null, creado_en: this.stamp() });
+          this.setState({ sending: false, route: "ficha", param: id, form: null });
+        }
+      });
+      this.showToast("Activo guardado");
+    }, 700);
+  };
+
+  renderVals() {
+    const s = this.state, d = this.d, me = this.me();
+    const loading = !!this.props.simulateLoading, errorSim = !!this.props.simulateError;
+    const rol = me ? me.rol : null;
+    const canAdmin = rol === "administrador", isCustodio = rol === "custodio";
+    const ROL = { administrador: "Administrador", custodio: "Custodio", auditor: "Auditor" };
+    const init = n => n ? n.split(" ").map(x => x[0]).slice(0, 2).join("").toUpperCase() : "";
+    const activosOf = () => d.activos;
+    const navDefs = [
+      { id: "dashboard", label: "Dashboard", icon: "⌂", roles: ["administrador", "custodio", "auditor"] },
+      { id: "activos", label: "Activos", icon: "▤", roles: ["administrador", "custodio", "auditor"] },
+      { id: "prestamos", label: "Préstamos", icon: "⇄", roles: ["administrador", "custodio", "auditor"] },
+      { id: "reportes", label: "Reportes", icon: "▦", roles: ["administrador", "auditor"] },
+      { id: "organizaciones", label: "Organizaciones", icon: "◫", roles: ["administrador"] },
+      { id: "categorias", label: "Categorías", icon: "⊞", roles: ["administrador"] },
+      { id: "usuarios", label: "Usuarios", icon: "◉", roles: ["administrador"] },
+      { id: "perfil", label: "Perfil", icon: "○", roles: ["administrador", "custodio", "auditor"] }
+    ];
+    const routeGroup = { ficha: "activos", form: "activos", etiqueta: "activos", carta: "activos" }[s.route] || s.route;
+    const nav = navDefs.filter(n => rol && n.roles.includes(rol)).map(n => {
+      const active = n.id === routeGroup;
+      return { label: n.label, icon: n.icon, go: () => this.go(n.id), cur: active ? "page" : undefined, style: { display: "flex", alignItems: "center", gap: "11px", padding: "10px 13px", borderRadius: "7px", cursor: "pointer", fontSize: "13.5px", fontWeight: 500, color: active ? "#fff" : "var(--sbt)", background: active ? "rgba(255,255,255,.12)" : "transparent" } };
+    });
+
+    // activos filtrados
+    const q = s.search.trim().toLowerCase();
+    const filtered = activosOf().filter(a =>
+      (s.fEstado === "todos" || a.estado === s.fEstado) &&
+      (s.fCat === "0" || a.categoria_id === Number(s.fCat)) &&
+      (s.fOrg === "0" || a.organizacion_id === Number(s.fOrg)) &&
+      (!q || a.codigo.toLowerCase().includes(q) || a.nombre.toLowerCase().includes(q) || (a.serie || "").toLowerCase().includes(q))
+    );
+    const aRows = filtered.map(a => Object.assign({
+      codigo: a.codigo, nombre: a.nombre, cat: (this.cat(a.categoria_id) || {}).nombre, org: (this.org(a.organizacion_id) || {}).nombre,
+      condicion: a.condicion, valor: this.money(a.valor_compra), go: () => this.go("ficha", a.id)
+    }, this.badge3(a.estado)));
+
+    // dashboard
+    const noBaja = d.activos.filter(a => a.estado !== "baja");
+    const nVenc = d.prestamos.filter(p => this.pEstado(p) === "vencido").length;
+    const kpis = [
+      { label: "Activos totales", value: String(noBaja.length), sub: d.activos.length - noBaja.length + " en baja", subStyle: { color: "var(--mut)" } },
+      { label: "Disponibles", value: String(d.activos.filter(a => a.estado === "disponible").length), sub: "listos para asignar", subStyle: { color: "var(--ok)" } },
+      { label: "Asignados", value: String(d.activos.filter(a => a.estado === "asignado").length), sub: "en resguardo", subStyle: { color: "var(--acc)" } },
+      { label: "Prestados", value: String(d.activos.filter(a => a.estado === "prestado").length), sub: nVenc ? nVenc + " vencido(s)" : "sin vencidos", subStyle: { color: nVenc ? "var(--dgr)" : "var(--mut)" } }
+    ];
+    const alertas = d.prestamos.filter(p => !p.devuelto_en).map(p => {
+      const a = d.activos.find(x => x.id === p.activo_id), est = this.pEstado(p);
+      return Object.assign({ codigo: a.codigo, nombre: a.nombre, quien: (this.usr(p.prestatario_id) || {}).nombre, fecha: this.fmtD(p.devolucion_esperada), go: () => this.go("ficha", a.id) }, this.badge3("p_" + est));
+    });
+    const movs = d.movimientos.slice().sort((a, b) => b.creado_en.localeCompare(a.creado_en)).slice(0, 6).map(m => ({
+      tipo: this.TIPOS[m.tipo], codigo: (d.activos.find(a => a.id === m.activo_id) || {}).codigo, fecha: this.fmtD(m.creado_en), dotStyle: { background: this.dotColor(m.tipo) }
+    }));
+    const misAsg = me ? d.asignaciones.filter(x => x.usuario_id === me.id && !x.revocada_en) : [];
+    const misResguardos = misAsg.map(x => { const a = d.activos.find(y => y.id === x.activo_id); return { codigo: a.codigo, nombre: a.nombre, desde: this.fmtD(x.asignada_en), go: () => this.go("ficha", a.id) }; });
+    const misP = me ? d.prestamos.filter(p => p.prestatario_id === me.id && !p.devuelto_en) : [];
+    const misPrestamos = misP.map(p => { const a = d.activos.find(y => y.id === p.activo_id); return Object.assign({ codigo: a.codigo, nombre: a.nombre, devolver: () => this.openModal("devolver", { prestamo_id: p.id, condicion: "bueno" }) }, this.badge3("p_" + this.pEstado(p))); });
+
+    // ficha
+    const act = s.param != null ? d.activos.find(a => a.id === Number(s.param)) : null;
+    let fa = {}, faFields = [], resg = {}, prest = {}, hasResg = false, hasPrest = false, hist = [];
+    if (act) {
+      fa = Object.assign({ codigo: act.codigo, nombre: act.nombre }, this.badge3(act.estado));
+      faFields = [
+        { k: "Marca", v: act.marca || "—" }, { k: "Modelo", v: act.modelo || "—" },
+        { k: "No. de serie", v: act.serie || "—" }, { k: "Categoría", v: (this.cat(act.categoria_id) || {}).nombre },
+        { k: "Organización", v: (this.org(act.organizacion_id) || {}).nombre }, { k: "Condición", v: act.condicion },
+        { k: "Fecha de compra", v: this.fmtD(act.fecha_compra) }, { k: "Valor de compra", v: this.money(act.valor_compra) },
+        { k: "Proveedor", v: act.proveedor || "—" }, { k: "Factura", v: act.factura_numero || "—" },
+        { k: "Descripción", v: act.descripcion || "—" }
+      ];
+      const asg = d.asignaciones.find(x => x.activo_id === act.id && !x.revocada_en);
+      if (asg) { const u = this.usr(asg.usuario_id); hasResg = true; resg = { nombre: u.nombre, email: u.email, init: init(u.nombre), fecha: this.fmtD(asg.asignada_en), notas: asg.notas, hasNotas: !!asg.notas }; }
+      const pr = d.prestamos.find(p => p.activo_id === act.id && !p.devuelto_en);
+      if (pr) { hasPrest = true; prest = Object.assign({ quien: (this.usr(pr.prestatario_id) || {}).nombre, salida: this.fmtD(pr.prestado_en), esperada: this.fmtD(pr.devolucion_esperada), devolver: () => this.openModal("devolver", { prestamo_id: pr.id, condicion: "bueno" }) }, this.badge3("p_" + this.pEstado(pr))); }
+      hist = d.movimientos.filter(m => m.activo_id === act.id).sort((a, b) => b.creado_en.localeCompare(a.creado_en)).map(m => ({
+        tipo: this.TIPOS[m.tipo], quien: m.a_usuario_id ? (this.usr(m.a_usuario_id) || {}).nombre : null, hasQuien: !!m.a_usuario_id,
+        notas: m.notas, hasNotas: !!m.notas, fecha: this.fmtD(m.creado_en), dotStyle: { background: this.dotColor(m.tipo) }
+      }));
+    }
+
+    // préstamos
+    const pRows = d.prestamos.slice().sort((a, b) => b.prestado_en.localeCompare(a.prestado_en)).map(p => {
+      const a = d.activos.find(x => x.id === p.activo_id), est = this.pEstado(p);
+      const canDev = !p.devuelto_en && (canAdmin || (isCustodio && me && p.prestatario_id === me.id));
+      return Object.assign({
+        codigo: a.codigo, nombre: a.nombre, quien: (this.usr(p.prestatario_id) || {}).nombre,
+        salida: this.fmtD(p.prestado_en), esperada: this.fmtD(p.devolucion_esperada), devuelto: this.fmtD(p.devuelto_en),
+        canDevolver: canDev, devolver: () => this.openModal("devolver", { prestamo_id: p.id, condicion: "bueno" }),
+        rowStyle: est === "vencido" ? { borderBottom: "1px solid var(--bd)", background: "rgba(179,65,58,.05)", boxShadow: "inset 3px 0 0 var(--dgr)" } : { borderBottom: "1px solid var(--bd)" },
+        espStyle: est === "vencido" ? { padding: "12px 16px", color: "var(--dgr)", fontWeight: 600 } : { padding: "12px 16px", color: "var(--mut)" }
+      }, this.badge3("p_" + est));
+    });
+
+    // carta
+    const titular = s.route === "carta" && s.param != null ? this.usr(Number(s.param)) : null;
+    let carta = { rows: [] };
+    if (titular) {
+      const rows = d.asignaciones.filter(x => x.usuario_id === titular.id && !x.revocada_en).map(x => {
+        const a = d.activos.find(y => y.id === x.activo_id);
+        return { codigo: a.codigo, nombre: a.nombre + (a.marca ? " · " + a.marca + " " + (a.modelo || "") : ""), serie: a.serie || "—", valor: this.money(a.valor_compra) };
+      });
+      carta = { nombre: titular.nombre, email: titular.email, rol: ROL[titular.rol], org: (this.org(titular.organizacion_id) || {}).nombre, fecha: new Date().toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }), rows };
+    }
+
+    // catálogos
+    const orgRows = d.organizaciones.map(o => Object.assign({
+      nombre: o.nombre, clave: o.clave, nActivos: String(d.activos.filter(a => a.organizacion_id === o.id).length),
+      toggle: () => { this.mut(dd => { const x = dd.organizaciones.find(y => y.id === o.id); x.is_active = !x.is_active; }); this.showToast(o.is_active ? "Organización desactivada" : "Organización activada"); },
+      toggleLabel: o.is_active ? "Desactivar" : "Activar"
+    }, this.badge3(o.is_active ? "on" : "off")));
+    const catRows = d.categorias.map(c => Object.assign({
+      nombre: c.nombre, clave: c.clave, nActivos: String(d.activos.filter(a => a.categoria_id === c.id).length),
+      toggle: () => { this.mut(dd => { const x = dd.categorias.find(y => y.id === c.id); x.is_active = !x.is_active; }); this.showToast(c.is_active ? "Categoría desactivada" : "Categoría activada"); },
+      toggleLabel: c.is_active ? "Desactivar" : "Activar"
+    }, this.badge3(c.is_active ? "on" : "off")));
+    const userRows = d.usuarios.map(u => Object.assign({
+      nombre: u.nombre, email: u.email, init: init(u.nombre), rol: ROL[u.rol], org: (this.org(u.organizacion_id) || {}).nombre,
+      nResg: String(d.asignaciones.filter(x => x.usuario_id === u.id && !x.revocada_en).length),
+      toggle: () => { this.mut(dd => { const x = dd.usuarios.find(y => y.id === u.id); x.is_active = !x.is_active; }); this.showToast(u.is_active ? "Usuario desactivado" : "Usuario activado"); },
+      toggleLabel: u.is_active ? "Desactivar" : "Activar"
+    }, this.badge3(u.is_active ? "on" : "off")));
+
+    // reportes
+    const repOrg = s.repOrg || "0";
+    const repBase = d.activos.filter(a => a.estado !== "baja" && (repOrg === "0" || a.organizacion_id === Number(repOrg)));
+    const repRows = d.categorias.map(c => {
+      const xs = repBase.filter(a => a.categoria_id === c.id);
+      return { cat: c.nombre, n: String(xs.length), valor: this.money(xs.reduce((t, a) => t + (a.valor_compra || 0), 0)) };
+    }).filter(r => r.n !== "0");
+    const repCustRows = d.usuarios.filter(u => u.rol === "custodio").map(u => {
+      const xs = d.asignaciones.filter(x => x.usuario_id === u.id && !x.revocada_en).map(x => d.activos.find(y => y.id === x.activo_id));
+      return { nombre: u.nombre, n: String(xs.length), valor: this.money(xs.reduce((t, a) => t + (a.valor_compra || 0), 0)) };
+    }).filter(r => r.n !== "0");
+
+    // form
+    const f = s.form || this.blankForm();
+    const fe = { nombre: s.fErr.nombre, nombreB: !!s.fErr.nombre, serie: s.fErr.serie, serieB: !!s.fErr.serie };
+    const codigoPreview = f.id ? (d.activos.find(a => a.id === f.id) || {}).codigo : ((this.cat(f.categoria_id) || {}).clave || "···") + "-" + ((this.org(f.organizacion_id) || {}).clave || "···") + "-" + "auto";
+
+    // modal
+    const modal = s.modal;
+    const mTitles = { asignar: "Asignar activo", transferir: "Transferir activo", prestar: "Registrar préstamo", devolver: "Registrar devolución", org: "Nueva organización", cat: "Nueva categoría", user: "Nuevo usuario" };
+    const mUserOpts = d.usuarios.filter(u => u.is_active && u.rol !== "auditor").map(u => ({ id: u.id, nombre: u.nombre, org: (this.org(u.organizacion_id) || {}).nombre }));
+    const mActivoOpts = d.activos.filter(a => a.estado === "disponible").map(a => ({ id: a.id, codigo: a.codigo, nombre: a.nombre }));
+
+    const et = act ? { codigo: act.codigo, nombre: act.nombre, org: (this.org(act.organizacion_id) || {}).nombre, serie: act.serie || "—" } : {};
+
+    return {
+      theme: s.theme, isLogin: s.route === "login", isApp: s.route !== "login" && !!me,
+      loginEmail: s.loginEmail, onLoginEmail: e => this.setState({ loginEmail: e.target.value, loginErr: null }),
+      doLogin: this.doLoginEmail, loginErr: s.loginErr, hasLoginErr: !!s.loginErr,
+      loginAdmin: () => this.loginAs(1), loginCust: () => this.loginAs(2), loginAud: () => this.loginAs(4),
+      nav, goDash: () => this.go("dashboard"), goPerfil: () => this.go("perfil"), logout: this.logoutFn,
+      userName: me ? me.nombre : "", userRolLabel: me ? ROL[me.rol] : "", userEmail: me ? me.email : "", userInit: me ? init(me.nombre) : "", userOrg: me ? (this.org(me.organizacion_id) || {}).nombre : "",
+      toggleTheme: () => this.setState({ theme: s.theme === "dark" ? "light" : "dark" }), themeLabel: s.theme === "dark" ? "☾ Oscuro" : "☀ Claro",
+      searchVal: s.search, onSearch: e => this.setState({ search: e.target.value, route: "activos", param: null }),
+      rDash: s.route === "dashboard", rActivos: s.route === "activos", rFicha: s.route === "ficha" && !!act, rForm: s.route === "form",
+      rEtiqueta: s.route === "etiqueta" && !!act, rPrestamos: s.route === "prestamos", rCarta: s.route === "carta" && !!titular,
+      rOrgs: s.route === "organizaciones", rCats: s.route === "categorias", rUsers: s.route === "usuarios", rReportes: s.route === "reportes", rPerfil: s.route === "perfil",
+      loading, errorSim, retry: () => this.showToast("Reintento simulado — desactiva 'simulateError' en Tweaks"),
+      canAdmin, hoyLabel: new Date().toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long", year: "numeric" }),
+      dashReady: !loading && !errorSim, dashFull: rol === "administrador" || rol === "auditor", dashCusto: isCustodio,
+      skel4: [1, 2, 3, 4], skel6: [1, 2, 3, 4, 5, 6],
+      kpis, alertas, nAlertas: String(alertas.length), hasAlert: alertas.length > 0, noAlert: alertas.length === 0, movs,
+      misResguardos, hasMisResg: misResguardos.length > 0, noMisResg: misResguardos.length === 0,
+      misPrestamos, hasMisPrest: misPrestamos.length > 0, noMisPrest: misPrestamos.length === 0,
+      aCount: String(filtered.length), aRows,
+      showTable: !loading && !errorSim && filtered.length > 0, showEmpty: !loading && !errorSim && filtered.length === 0,
+      fEstado: s.fEstado, onFEstado: e => this.setState({ fEstado: e.target.value }),
+      fCat: s.fCat, onFCat: e => this.setState({ fCat: e.target.value }),
+      fOrg: s.fOrg, onFOrg: e => this.setState({ fOrg: e.target.value }),
+      clearFilters: () => this.setState({ search: "", fEstado: "todos", fCat: "0", fOrg: "0" }),
+      catOpts: d.categorias.filter(c => c.is_active).map(c => ({ id: c.id, nombre: c.nombre })),
+      orgOpts: d.organizaciones.filter(o => o.is_active).map(o => ({ id: o.id, nombre: o.nombre })),
+      newActivo: () => this.setState({ route: "form", param: null, form: this.blankForm(), fErr: {}, saveErr: false }),
+      fa, faFields, hasResg, resg, hasPrest, prest, hist,
+      canDevolver: canAdmin || (isCustodio && hasPrest && me && d.prestamos.some(p => p.activo_id === (act || {}).id && !p.devuelto_en && p.prestatario_id === me.id)),
+      canAsignarBtn: act && act.estado === "disponible", canTransferirBtn: act && act.estado === "asignado", canPrestarBtn: act && act.estado === "disponible",
+      isBaja: act && act.estado === "baja", bajaMotivo: act ? act.baja_motivo : "",
+      openAsignar: () => this.openModal("asignar", { activo_id: act.id, usuario: mUserOpts[0] && mUserOpts[0].id }),
+      openTransferir: () => this.openModal("transferir", { activo_id: act.id, usuario: mUserOpts[0] && mUserOpts[0].id }),
+      openPrestar: () => this.openModal("prestar", { activo: act.id, activo_id: act.id, usuario: mUserOpts[0] && mUserOpts[0].id, fecha: this.defaultFecha() }),
+      goEtiqueta: () => this.go("etiqueta", act.id), goEditar: () => { const a = act; this.setState({ route: "form", param: a.id, form: { id: a.id, nombre: a.nombre, categoria_id: String(a.categoria_id), organizacion_id: String(a.organizacion_id), serie: a.serie || "", marca: a.marca || "", modelo: a.modelo || "", fecha_compra: a.fecha_compra || "", valor_compra: a.valor_compra != null ? String(a.valor_compra) : "", proveedor: a.proveedor || "", factura_numero: a.factura_numero || "", condicion: a.condicion, descripcion: a.descripcion || "" }, fErr: {}, saveErr: false }); },
+      goCarta: () => { const asg = d.asignaciones.find(x => x.activo_id === act.id && !x.revocada_en); if (asg) this.go("carta", asg.usuario_id); },
+      backActivos: e => { if (e && e.preventDefault) e.preventDefault(); this.go("activos"); },
+      backFicha: e => { if (e && e.preventDefault) e.preventDefault(); this.go("ficha", act ? act.id : null); },
+      fTitle: f.id ? "Editar activo" : "Nuevo activo", f, fe, codigoPreview, saveErr: s.saveErr,
+      onF: e => { const form = Object.assign({}, this.state.form || this.blankForm()); form[e.target.name] = e.target.value; const fErr = Object.assign({}, this.state.fErr); delete fErr[e.target.name]; this.setState({ form, fErr }); },
+      saveForm: this.saveFormFn, sending: s.sending, saveLabel: s.sending ? "Guardando…" : "Guardar activo",
+      et, printToast: () => this.showToast("Impresión simulada en el demo"),
+      pRows, openNuevoPrestamo: () => this.openModal("prestar", { activo: mActivoOpts[0] && mActivoOpts[0].id, usuario: mUserOpts[0] && mUserOpts[0].id, fecha: this.defaultFecha() }),
+      carta, orgRows, newOrg: () => this.openModal("org", {}), catRows, newCat: () => this.openModal("cat", {}),
+      userRows, newUser: () => this.openModal("user", { rol: "custodio", organizacion_id: "1" }),
+      repOrg, onRepOrg: e => this.setState({ repOrg: e.target.value }),
+      repRows, repTotalN: String(repBase.length), repTotalV: this.money(repBase.reduce((t, a) => t + (a.valor_compra || 0), 0)), repCustRows,
+      exportToast: () => this.showToast("Exportación simulada (demo)"),
+      mOpen: !!modal, mTitle: mTitles[modal] || "", mSel: s.mSel,
+      mIsPersona: modal === "asignar" || modal === "transferir" || modal === "prestar",
+      mPersonaLabel: modal === "prestar" ? "Prestatario" : "Nuevo resguardante",
+      mIsPrestar: modal === "prestar", mIsDevolver: modal === "devolver", mIsCatalogo: modal === "org" || modal === "cat", mIsUser: modal === "user",
+      mHasNotas: modal === "asignar" || modal === "transferir" || modal === "prestar" || modal === "devolver",
+      mHasPre: modal === "asignar" || modal === "prestar", mPre: modal === "prestar" ? "Solo se listan activos con estado disponible." : "Solo activos disponibles pueden asignarse.",
+      mHasErr: !!s.mErr, mErr: s.mErr,
+      mUserOpts, mActivoOpts,
+      onM: e => { const mSel = Object.assign({}, this.state.mSel); mSel[e.target.name] = e.target.value; this.setState({ mSel, mErr: null }); },
+      confirmM: this.confirmMFn, closeM: this.closeMFn, stopProp: e => e.stopPropagation(),
+      mConfirmLabel: s.sending ? "Guardando…" : ({ asignar: "Asignar", transferir: "Transferir", prestar: "Registrar", devolver: "Confirmar devolución", org: "Crear", cat: "Crear", user: "Crear" }[modal] || "Confirmar"),
+      hasToast: !!s.toast, toastMsg: s.toast
+    };
+  }
+}
+
+</script>
+</body>
+</html>

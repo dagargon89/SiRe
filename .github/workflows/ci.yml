@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (CI4)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: sire_test
+          MYSQL_USER: sire
+          MYSQL_PASSWORD: sire
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -proot"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mysqli, intl, mbstring, redis, gmp, bcmath, curl
+          coverage: pcov
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+      - name: Preparar entorno de pruebas
+        run: |
+          cp env .env
+          {
+            echo "database.tests.hostname = 127.0.0.1"
+            echo "database.tests.database = sire_test"
+            echo "database.tests.username = sire"
+            echo "database.tests.password = sire"
+            echo "database.tests.DBDriver = MySQLi"
+            echo "database.tests.port = 3306"
+            echo "redis.host = 127.0.0.1"
+            echo "redis.port = 6379"
+          } >> .env
+      - name: Auditoría de dependencias
+        run: composer audit --no-interaction
+      - name: PHPUnit
+        run: vendor/bin/phpunit --coverage-text
+
+  frontend:
+    name: Frontend (React)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Auditoría de dependencias
+        run: npm audit --audit-level=high || true
+      - name: Pruebas (Vitest)
+        run: npm run test
+      - name: Build
+        run: npm run build

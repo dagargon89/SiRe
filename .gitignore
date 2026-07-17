@@ -1,0 +1,36 @@
+# Entorno / secretos
+.env
+*.env.local
+.env.*.local
+**/serviceAccount*.json
+**/firebase-service-account*.json
+
+# PHP / CodeIgniter (apps/api)
+/apps/api/vendor/
+/apps/api/writable/cache/*
+/apps/api/writable/debugbar/*
+/apps/api/writable/logs/*
+/apps/api/writable/session/*
+/apps/api/writable/uploads/*
+!/apps/api/writable/**/index.html
+/apps/api/.phpunit.cache/
+/apps/api/phpunit.xml
+/apps/api/builds/
+
+# Node / Vite / React (apps/web)
+node_modules/
+/apps/web/dist/
+/apps/web/.vite/
+/apps/web/coverage/
+/apps/web/playwright-report/
+/apps/web/test-results/
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log
+
+# Editores
+.idea/
+.vscode/*
+!.vscode/extensions.json
