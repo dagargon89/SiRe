@@ -7,6 +7,8 @@ use App\Auth\FirebaseAdmin;
 use App\Auth\FirebaseTokenVerifier;
 use App\Auth\KreaitFirebaseAdmin;
 use App\Auth\TokenVerifier;
+use App\Notificaciones\EmailMailer;
+use App\Notificaciones\Mailer;
 use App\Storage\ArchivoStorage;
 use App\Storage\FirebaseStorage;
 use CodeIgniter\Config\BaseService;
@@ -91,6 +93,16 @@ class Services extends BaseService
         }
 
         return new FirebaseTokenVerifier(static::firebaseAuth());
+    }
+
+    /** Envío de correo (SMTP vía CI4 Email). */
+    public static function mailer($getShared = true): Mailer
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mailer');
+        }
+
+        return new EmailMailer();
     }
 
     /** Operaciones privilegiadas de Firebase Auth (alta/baja de usuarios). */

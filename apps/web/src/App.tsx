@@ -10,6 +10,7 @@ import { Placeholder } from './pages/Placeholder'
 import { Activos } from './pages/Activos'
 import { ActivoFicha } from './pages/ActivoFicha'
 import { ActivoForm } from './pages/ActivoForm'
+import { Prestamos } from './pages/Prestamos'
 
 function App() {
   const { firebaseUser, perfil, loading } = useAuth()
@@ -35,7 +36,7 @@ function App() {
           {esAdmin && <Route path="activos/nuevo" element={<ActivoForm />} />}
           {esAdmin && <Route path="activos/:id/editar" element={<ActivoForm />} />}
           <Route path="activos/:id" element={<ActivoFicha />} />
-          <Route path="prestamos" element={<Placeholder titulo="Préstamos" />} />
+          <Route path="prestamos" element={<Prestamos />} />
           <Route path="reportes" element={<Placeholder titulo="Reportes" />} />
           <Route path="perfil" element={<Perfil />} />
           {esAdmin && <Route path="organizaciones" element={<Organizaciones />} />}

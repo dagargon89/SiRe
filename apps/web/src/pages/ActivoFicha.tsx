@@ -9,15 +9,16 @@ import { useAuth } from '../lib/auth'
 import { api } from '../lib/apiClient'
 import {
   useActivo, useDarDeBaja, useMantenimiento,
-  useAsignar, useRevocar, useTransferir, useUsuarios,
+  useAsignar, useRevocar, useTransferir, useUsuarios, usePrestar,
 } from '../lib/queries'
+import type { CondicionActivo } from '../lib/api'
 
 const TIPO_LABEL: Record<string, string> = {
   alta: 'Alta', asignacion: 'Asignación', revocacion: 'Revocación', prestamo: 'Préstamo',
   devolucion: 'Devolución', transferencia: 'Transferencia', mantenimiento: 'Mantenimiento', baja: 'Baja',
 }
 
-type ModalTipo = null | 'baja' | 'asignar' | 'transferir' | 'revocar'
+type ModalTipo = null | 'baja' | 'asignar' | 'transferir' | 'revocar' | 'prestar'
 
 export function ActivoFicha() {
   const { id } = useParams()
@@ -30,6 +31,7 @@ export function ActivoFicha() {
   const asignar = useAsignar()
   const revocar = useRevocar()
   const transferir = useTransferir()
+  const prestar = usePrestar()
   const esAdmin = perfil?.rol === 'administrador'
   const usuarios = useUsuarios(1)
   const [modal, setModal] = useState<ModalTipo>(null)
@@ -78,7 +80,10 @@ export function ActivoFicha() {
           <>
             <Button variant="secondary" onClick={() => navigate(`/activos/${activoId}/editar`)}>Editar</Button>
             {activo.estado === 'disponible' && (
-              <Button onClick={() => setModal('asignar')}>Asignar</Button>
+              <>
+                <Button onClick={() => setModal('asignar')}>Asignar</Button>
+                <Button variant="secondary" onClick={() => setModal('prestar')}>Prestar</Button>
+              </>
             )}
             {activo.estado === 'asignado' && (
               <>
@@ -153,7 +158,68 @@ export function ActivoFicha() {
           }}
         />
       )}
+      {modal === 'prestar' && (
+        <ModalPrestar
+          usuarios={usuarios.data?.data ?? []}
+          onCerrar={() => setModal(null)}
+          onConfirmar={async (uid, devolucion, condicion, notas) => {
+            await prestar.mutateAsync({
+              activo_id: activoId, prestatario_id: uid,
+              devolucion_esperada: devolucion, condicion_prestamo: condicion, notas,
+            })
+            setModal(null)
+          }}
+        />
+      )}
     </div>
+  )
+}
+
+function ModalPrestar({ usuarios, onCerrar, onConfirmar }: {
+  usuarios: { id: number; nombre: string; rol: string }[]
+  onCerrar: () => void
+  onConfirmar: (uid: number, devolucion: string, condicion: Exclude<CondicionActivo, 'baja'>, notas?: string) => Promise<void>
+}) {
+  const [uid, setUid] = useState<number | ''>('')
+  const [devolucion, setDevolucion] = useState('')
+  const [condicion, setCondicion] = useState<Exclude<CondicionActivo, 'baja'>>('bueno')
+  const [notas, setNotas] = useState('')
+  const [enviando, setEnviando] = useState(false)
+
+  return (
+    <Modal title="Prestar activo" onClose={onCerrar}>
+      <div className="flex flex-col gap-4">
+        <label className="flex flex-col gap-1">
+          <span className="text-sm font-medium text-ink">Prestatario</span>
+          <select value={uid} onChange={(e) => setUid(e.target.value === '' ? '' : Number(e.target.value))}
+            className="h-11 px-3 rounded-[6px] border border-border bg-surface text-ink text-sm">
+            <option value="">Selecciona…</option>
+            {usuarios.map((u) => <option key={u.id} value={u.id}>{u.nombre} ({u.rol})</option>)}
+          </select>
+        </label>
+        <Field label="Devolución esperada" type="datetime-local" value={devolucion}
+          onChange={(e) => setDevolucion(e.target.value)} required />
+        <label className="flex flex-col gap-1">
+          <span className="text-sm font-medium text-ink">Condición al prestar</span>
+          <select value={condicion} onChange={(e) => setCondicion(e.target.value as Exclude<CondicionActivo, 'baja'>)}
+            className="h-11 px-3 rounded-[6px] border border-border bg-surface text-ink text-sm">
+            {(['excelente', 'bueno', 'regular', 'malo'] as const).map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </label>
+        <Field label="Notas (opcional)" value={notas} onChange={(e) => setNotas(e.target.value)} />
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" onClick={onCerrar}>Cancelar</Button>
+          <Button disabled={enviando || uid === '' || devolucion === ''}
+            onClick={async () => {
+              setEnviando(true)
+              // datetime-local → "YYYY-MM-DDTHH:mm"; el API acepta ISO.
+              await onConfirmar(Number(uid), devolucion.replace('T', ' ') + ':00', condicion, notas.trim() || undefined)
+            }}>
+            Prestar
+          </Button>
+        </div>
+      </div>
+    </Modal>
   )
 }
 

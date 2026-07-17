@@ -17,7 +17,7 @@ Aplicación web interna para el control de resguardos de equipo y mobiliario de 
 |---|---|---|
 | 0 — Documentación (00–08) | ✅ Completa (2026-07-17) | Sí |
 | 1 — Especificación de Demo UI/UX (`demo-ux/09_demo_ux_guia.md`) + prototipo | 🟡 En revisión (2026-07-17) | Pendiente visto bueno · [SPRINT-D-verificacion](demo-ux/prototipo/SPRINT-D-verificacion.md) |
-| 2 — Backend (CI4 + MySQL + Redis) + `apps/web` | 🟡 En curso — Sprints 0–3 cerrados; Sprint 4 siguiente (2026-07-17) | [S0](07-roadmap/verificaciones/SPRINT-0-verificacion.md) · [S1](07-roadmap/verificaciones/SPRINT-1-verificacion.md) · [S2](07-roadmap/verificaciones/SPRINT-2-verificacion.md) · [S3](07-roadmap/verificaciones/SPRINT-3-verificacion.md) |
+| 2 — Backend (CI4 + MySQL + Redis) + `apps/web` | 🟡 En curso — Sprints 0–4 cerrados; Sprint 5 siguiente (2026-07-17) | [S0](07-roadmap/verificaciones/SPRINT-0-verificacion.md) · [S1](07-roadmap/verificaciones/SPRINT-1-verificacion.md) · [S2](07-roadmap/verificaciones/SPRINT-2-verificacion.md) · [S3](07-roadmap/verificaciones/SPRINT-3-verificacion.md) · [S4](07-roadmap/verificaciones/SPRINT-4-verificacion.md) |
 
 > **Regla de gate:** ningún agente genera trabajo de la Fase N+1 si la Fase N tiene "DoD verificada: No", salvo excepción justificada por escrito en esta misma tabla.
 >

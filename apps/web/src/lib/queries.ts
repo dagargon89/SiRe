@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './apiClient'
-import type { Activo, FiltrosActivos, Rol } from './api'
+import type { Activo, CondicionActivo, EstadoPrestamo, FiltrosActivos, Rol } from './api'
 
 // ─── Organizaciones ───────────────────────────────────────────────
 export function useOrganizaciones() {
@@ -158,5 +158,36 @@ export function useTransferir() {
   return useMutation({
     mutationFn: (v: { activo_id: number; nuevo_usuario_id: number; notas?: string }) => api.transferir(v),
     onSuccess: (_r, v) => invalidarActivo(qc, v.activo_id),
+  })
+}
+
+// ─── Préstamos ────────────────────────────────────────────────────
+export function usePrestamos(estado?: EstadoPrestamo) {
+  return useQuery({ queryKey: ['prestamos', estado], queryFn: () => api.listarPrestamos(estado) })
+}
+
+export function usePrestar() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: {
+      activo_id: number; prestatario_id: number; devolucion_esperada: string
+      condicion_prestamo: Exclude<CondicionActivo, 'baja'>; notas?: string
+    }) => api.prestar(v),
+    onSuccess: (_r, v) => {
+      qc.invalidateQueries({ queryKey: ['prestamos'] })
+      invalidarActivo(qc, v.activo_id)
+    },
+  })
+}
+
+export function useDevolver() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: number; condicion_devolucion: Exclude<CondicionActivo, 'baja'>; notas?: string }) =>
+      api.devolver(v.id, { condicion_devolucion: v.condicion_devolucion, notas: v.notas }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['prestamos'] })
+      qc.invalidateQueries({ queryKey: ['activos'] })
+    },
   })
 }

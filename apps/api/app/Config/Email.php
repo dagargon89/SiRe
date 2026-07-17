@@ -10,6 +10,25 @@ class Email extends BaseConfig
     public string $fromName   = '';
     public string $recipients = '';
 
+    public function __construct()
+    {
+        parent::__construct();
+
+        // Config SMTP desde .env (si SMTP_HOST está definido usa smtp).
+        $host = (string) (env('SMTP_HOST') ?? '');
+        if ($host !== '') {
+            $this->protocol   = 'smtp';
+            $this->SMTPHost   = $host;
+            $this->SMTPUser   = (string) (env('SMTP_USER') ?? '');
+            $this->SMTPPass   = (string) (env('SMTP_PASS') ?? '');
+            $this->SMTPPort   = (int) (env('SMTP_PORT') ?? 587);
+            $this->SMTPCrypto = (string) (env('SMTP_CRYPTO') ?? 'tls');
+        }
+        $this->fromEmail = (string) (env('SMTP_FROM') ?? 'noreply@planjuarez.org');
+        $this->fromName  = 'SiRe';
+        $this->mailType  = 'html';
+    }
+
     /**
      * The "user agent"
      */
