@@ -1,0 +1,82 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { api } from './apiClient'
+import type { Rol } from './api'
+
+// ─── Organizaciones ───────────────────────────────────────────────
+export function useOrganizaciones() {
+  return useQuery({ queryKey: ['organizaciones'], queryFn: () => api.listarOrganizaciones() })
+}
+
+export function useGuardarOrganizacion() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id?: number; nombre: string; clave: string }) =>
+      v.id
+        ? api.editarOrganizacion(v.id, { nombre: v.nombre, clave: v.clave })
+        : api.crearOrganizacion({ nombre: v.nombre, clave: v.clave }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['organizaciones'] }),
+  })
+}
+
+export function useEstadoOrganizacion() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: number; activa: boolean }) =>
+      api.cambiarEstadoOrganizacion(v.id, v.activa),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['organizaciones'] }),
+  })
+}
+
+// ─── Categorías ───────────────────────────────────────────────────
+export function useCategorias() {
+  return useQuery({ queryKey: ['categorias'], queryFn: () => api.listarCategorias() })
+}
+
+export function useGuardarCategoria() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id?: number; nombre: string; clave: string }) =>
+      v.id
+        ? api.editarCategoria(v.id, { nombre: v.nombre, clave: v.clave })
+        : api.crearCategoria({ nombre: v.nombre, clave: v.clave }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['categorias'] }),
+  })
+}
+
+export function useEstadoCategoria() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: number; activa: boolean }) => api.cambiarEstadoCategoria(v.id, v.activa),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['categorias'] }),
+  })
+}
+
+// ─── Usuarios ─────────────────────────────────────────────────────
+export function useUsuarios(page = 1) {
+  return useQuery({ queryKey: ['usuarios', page], queryFn: () => api.listarUsuarios(page) })
+}
+
+export function useCrearUsuario() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { nombre: string; email: string; rol: Rol; organizacion_id: number }) =>
+      api.crearUsuario(v),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['usuarios'] }),
+  })
+}
+
+export function useCambiarRol() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: number; rol: Rol }) => api.cambiarRol(v.id, v.rol),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['usuarios'] }),
+  })
+}
+
+export function useDesactivarUsuario() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.desactivarUsuario(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['usuarios'] }),
+  })
+}

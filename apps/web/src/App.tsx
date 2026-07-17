@@ -1,16 +1,19 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './lib/auth'
 import { Login } from './pages/Login'
-import { toggleTheme } from './lib/theme'
-import { Button } from './components/Button'
+import { AppShell } from './layout/AppShell'
+import { Organizaciones } from './pages/Organizaciones'
+import { Categorias } from './pages/Categorias'
+import { Usuarios } from './pages/Usuarios'
+import { Perfil } from './pages/Perfil'
+import { Placeholder } from './pages/Placeholder'
 
 function App() {
-  const { firebaseUser, perfil, loading, logout } = useAuth()
+  const { firebaseUser, perfil, loading } = useAuth()
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg text-ink-muted grid place-items-center">
-        Cargando…
-      </div>
+      <div className="min-h-screen bg-bg text-ink-muted grid place-items-center">Cargando…</div>
     )
   }
 
@@ -18,39 +21,24 @@ function App() {
     return <Login />
   }
 
-  // Shell autenticado mínimo (Sprint 0). Las pantallas completas llegan en los
-  // sprints siguientes; esto prueba el login end-to-end con perfil real.
+  const esAdmin = perfil.rol === 'administrador'
+
   return (
-    <div className="min-h-screen bg-bg text-ink">
-      <header className="h-14 bg-surface border-b border-border flex items-center justify-between px-5">
-        <div className="font-bold text-lg">SiRe</div>
-        <div className="flex items-center gap-3">
-          <div className="text-sm text-ink-muted">
-            {perfil.nombre} · <span className="capitalize">{perfil.rol}</span>
-          </div>
-          <button
-            type="button"
-            aria-label="Cambiar tema claro/oscuro"
-            onClick={() => toggleTheme()}
-            className="size-9 rounded-md border border-border bg-surface-2"
-          >
-            ◐
-          </button>
-          <Button variant="secondary" onClick={() => void logout()}>
-            Salir
-          </Button>
-        </div>
-      </header>
-      <main className="p-8">
-        <h1 className="text-2xl font-semibold mb-2">
-          Bienvenido, {perfil.nombre}
-        </h1>
-        <p className="text-ink-muted">
-          Sesión iniciada correctamente. Las pantallas del sistema se habilitan en
-          los siguientes sprints.
-        </p>
-      </main>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route index element={<Placeholder titulo="Dashboard" />} />
+          <Route path="activos" element={<Placeholder titulo="Activos" />} />
+          <Route path="prestamos" element={<Placeholder titulo="Préstamos" />} />
+          <Route path="reportes" element={<Placeholder titulo="Reportes" />} />
+          <Route path="perfil" element={<Perfil />} />
+          {esAdmin && <Route path="organizaciones" element={<Organizaciones />} />}
+          {esAdmin && <Route path="categorias" element={<Categorias />} />}
+          {esAdmin && <Route path="usuarios" element={<Usuarios />} />}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 

@@ -28,7 +28,7 @@ describe('App (enrutado por sesión)', () => {
     expect(screen.getByRole('heading', { name: 'Iniciar sesión' })).toBeInTheDocument()
   })
 
-  it('muestra el shell autenticado con el perfil real', () => {
+  it('muestra el shell autenticado con navegación por rol', () => {
     mockUseAuth.mockReturnValue({
       loading: false,
       firebaseUser: { uid: 'x' },
@@ -36,7 +36,9 @@ describe('App (enrutado por sesión)', () => {
       logout: vi.fn(),
     })
     render(<App />)
-    expect(screen.getByRole('heading', { name: /Bienvenido, Admin Demo/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Salir' })).toBeInTheDocument()
+    // El admin ve enlaces de administración y su nombre en el shell.
+    expect(screen.getByRole('link', { name: /Organizaciones/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Usuarios/ })).toBeInTheDocument()
+    expect(screen.getAllByText('Admin Demo').length).toBeGreaterThan(0)
   })
 })

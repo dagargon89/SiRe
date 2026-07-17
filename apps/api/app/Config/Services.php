@@ -3,7 +3,9 @@
 namespace Config;
 
 use App\Auth\CurrentUser;
+use App\Auth\FirebaseAdmin;
 use App\Auth\FirebaseTokenVerifier;
+use App\Auth\KreaitFirebaseAdmin;
 use App\Auth\TokenVerifier;
 use CodeIgniter\Config\BaseService;
 use Kreait\Firebase\Contract\Auth as FirebaseAuth;
@@ -69,5 +71,15 @@ class Services extends BaseService
         }
 
         return new FirebaseTokenVerifier(static::firebaseAuth());
+    }
+
+    /** Operaciones privilegiadas de Firebase Auth (alta/baja de usuarios). */
+    public static function firebaseAdmin($getShared = true): FirebaseAdmin
+    {
+        if ($getShared) {
+            return static::getSharedInstance('firebaseAdmin');
+        }
+
+        return new KreaitFirebaseAdmin(static::firebaseAuth());
     }
 }
