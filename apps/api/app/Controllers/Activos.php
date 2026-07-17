@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\ActivoModel;
+use App\Models\AsignacionModel;
 use App\Models\MovimientoModel;
 use App\Services\Activos\CrearActivoService;
 use App\Services\Activos\EtiquetaPdf;
@@ -116,7 +117,20 @@ class Activos extends ApiController
             'creado_en'     => $m['creado_en'],
         ], $historial);
 
-        return $this->ok(['activo' => $this->presentar($activo), 'historial' => $historial]);
+        $vigente = (new AsignacionModel())->vigenteDe($id);
+        $asignacionVigente = $vigente === null ? null : [
+            'id'          => (int) $vigente['id'],
+            'activo_id'   => (int) $vigente['activo_id'],
+            'usuario_id'  => (int) $vigente['usuario_id'],
+            'asignada_en' => $vigente['asignada_en'],
+            'revocada_en' => null,
+        ];
+
+        return $this->ok([
+            'activo'            => $this->presentar($activo),
+            'historial'         => $historial,
+            'asignacion_vigente' => $asignacionVigente,
+        ]);
     }
 
     /** PUT /activos/{id} — administrador. No cambia código ni estado. */

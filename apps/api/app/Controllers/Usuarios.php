@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\UsuarioModel;
+use App\Services\Resguardos\CartaResponsiva;
 use App\Services\ServiceException;
 use App\Services\Usuarios\CrearUsuarioService;
 use App\Services\Usuarios\DesactivarUsuarioService;
@@ -126,6 +127,37 @@ class Usuarios extends ApiController
         $model->update($id, ['rol' => $rol]);
 
         return $this->ok($this->presentar($model->find($id)));
+    }
+
+    /** GET /usuarios/{id}/carta — administrador o titular (PII). PDF. */
+    public function carta(int $id): ResponseInterface
+    {
+        if (! PoliticaPii::puedeVer($this->actor(), $id)) {
+            return $this->error(403, 'sin_permiso_pii', 'No tienes permiso para esta carta.');
+        }
+
+        $model = $this->model();
+        $u     = $model->find($id);
+        if ($u === null) {
+            return $this->error(404, 'no_existe', 'Usuario no encontrado.');
+        }
+
+        $db     = $model->db;
+        $bienes = $db->table('asignaciones a')
+            ->select('ac.codigo, ac.nombre')
+            ->join('activos ac', 'ac.id = a.activo_id')
+            ->where('a.usuario_id', $id)
+            ->where('a.revocada_en', null)
+            ->orderBy('ac.codigo', 'ASC')
+            ->get()->getResultArray();
+
+        $org  = $db->table('organizaciones')->where('id', $u['organizacion_id'])->get()->getRowArray();
+        $pdf  = (new CartaResponsiva())->generar($u, $bienes, $org['nombre'] ?? '');
+
+        return $this->response
+            ->setContentType('application/pdf')
+            ->setHeader('Content-Disposition', 'inline; filename="carta-' . $id . '.pdf"')
+            ->setBody($pdf);
     }
 
     /** PATCH /usuarios/{id}/desactivar — administrador. No a sí mismo. */

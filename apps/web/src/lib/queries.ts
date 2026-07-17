@@ -129,3 +129,34 @@ export function useMantenimiento() {
     },
   })
 }
+
+// ─── Resguardos ───────────────────────────────────────────────────
+function invalidarActivo(qc: ReturnType<typeof useQueryClient>, activoId: number) {
+  qc.invalidateQueries({ queryKey: ['activos'] })
+  qc.invalidateQueries({ queryKey: ['activo', activoId] })
+}
+
+export function useAsignar() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { activo_id: number; usuario_id: number; notas?: string }) => api.asignar(v),
+    onSuccess: (_r, v) => invalidarActivo(qc, v.activo_id),
+  })
+}
+
+export function useRevocar() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: number; motivo: string; activo_id: number }) =>
+      api.revocarAsignacion(v.id, v.motivo),
+    onSuccess: (_r, v) => invalidarActivo(qc, v.activo_id),
+  })
+}
+
+export function useTransferir() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { activo_id: number; nuevo_usuario_id: number; notas?: string }) => api.transferir(v),
+    onSuccess: (_r, v) => invalidarActivo(qc, v.activo_id),
+  })
+}

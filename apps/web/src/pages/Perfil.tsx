@@ -1,5 +1,7 @@
 import { Card } from '../components/Card'
+import { Button } from '../components/Button'
 import { useAuth } from '../lib/auth'
+import { api } from '../lib/apiClient'
 
 const ROL_LABEL: Record<string, string> = {
   administrador: 'Administrador',
@@ -11,6 +13,11 @@ export function Perfil() {
   const { perfil } = useAuth()
   if (!perfil) return null
 
+  async function descargarCarta() {
+    const blob = await api.descargarCarta(perfil!.id)
+    window.open(URL.createObjectURL(blob), '_blank')
+  }
+
   return (
     <div className="max-w-lg">
       <h1 className="text-2xl font-semibold text-ink mb-5">Mi perfil</h1>
@@ -19,6 +26,9 @@ export function Perfil() {
         <Dato etiqueta="Correo" valor={perfil.email} />
         <Dato etiqueta="Rol" valor={ROL_LABEL[perfil.rol] ?? perfil.rol} />
         <Dato etiqueta="Organización de origen" valor={`#${perfil.organizacion_id}`} />
+        <div className="pt-2">
+          <Button variant="secondary" onClick={descargarCarta}>Descargar mi carta responsiva</Button>
+        </div>
       </Card>
     </div>
   )

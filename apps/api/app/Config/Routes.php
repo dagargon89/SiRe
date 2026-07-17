@@ -47,7 +47,13 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     $routes->get('usuarios', 'Usuarios::index', $admin);
     $routes->post('usuarios', 'Usuarios::create', $admin);
     $routes->get('usuarios/(:num)', 'Usuarios::show/$1', $auth);   // PII: admin o titular (dentro)
+    $routes->get('usuarios/(:num)/carta', 'Usuarios::carta/$1', $auth); // PII: admin o titular (dentro)
     $routes->put('usuarios/(:num)', 'Usuarios::update/$1', $admin);
     $routes->patch('usuarios/(:num)/rol', 'Usuarios::rol/$1', $admin);
     $routes->patch('usuarios/(:num)/desactivar', 'Usuarios::desactivar/$1', $admin);
+
+    // Asignaciones (resguardos)
+    $routes->post('asignaciones', 'Asignaciones::create', $admin);
+    $routes->post('asignaciones/transferir', 'Asignaciones::transferir', $admin);
+    $routes->patch('asignaciones/(:num)/revocar', 'Asignaciones::revocar/$1', $admin);
 });

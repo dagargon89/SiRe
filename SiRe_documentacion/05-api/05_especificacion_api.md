@@ -191,7 +191,7 @@ export interface ApiClient {
   // activos
   listarActivos(filtros?: FiltrosActivos): Promise<Paginado<Activo>>;
   crearActivo(data: Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>): Promise<Activo>;
-  obtenerActivo(id: number): Promise<{ activo: Activo; historial: Movimiento[] }>;
+  obtenerActivo(id: number): Promise<{ activo: Activo; historial: Movimiento[]; asignacion_vigente: Asignacion | null }>; // asignacion_vigente añadido en Sprint 3
   editarActivo(id: number, data: Partial<Activo>): Promise<Activo>;
   subirFactura(id: number, archivo: File): Promise<{ factura_url: string }>;
   urlFactura(id: number): Promise<{ url: string }>;

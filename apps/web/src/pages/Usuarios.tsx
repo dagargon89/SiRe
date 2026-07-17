@@ -5,6 +5,7 @@ import { Field } from '../components/Field'
 import { Modal } from '../components/Modal'
 import { ActivaBadge } from '../components/Badge'
 import { useAuth } from '../lib/auth'
+import { api } from '../lib/apiClient'
 import { ApiError, type Rol } from '../lib/api'
 import {
   useUsuarios,
@@ -77,7 +78,16 @@ export function Usuarios() {
                     <td className="px-4 py-3">
                       <ActivaBadge activa={u.is_active} />
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <button
+                        className="text-accent hover:underline mr-4"
+                        onClick={async () => {
+                          const blob = await api.descargarCarta(u.id)
+                          window.open(URL.createObjectURL(blob), '_blank')
+                        }}
+                      >
+                        Carta
+                      </button>
                       <button
                         className="text-danger hover:underline disabled:opacity-40 disabled:no-underline"
                         disabled={esYo || !u.is_active}
