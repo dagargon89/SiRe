@@ -1,7 +1,8 @@
 import { Card } from '../components/Card'
 import { KpiCard } from '../components/KpiCard'
+import { Button } from '../components/Button'
 import { useDashboard } from '../lib/queries'
-import type { EstadoActivo } from '../lib/api'
+import type { EstadoActivo, Movimiento } from '../lib/api'
 
 const TIPO_LABEL: Record<string, string> = {
   alta: 'Alta', asignacion: 'Asignación', revocacion: 'Revocación', prestamo: 'Préstamo',
@@ -75,20 +76,61 @@ export function Dashboard() {
 
       {d.ultimos_movimientos.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-lg font-semibold text-ink mb-3">Últimos movimientos</h2>
-          <Card className="p-4">
-            <ol className="text-sm space-y-2">
-              {d.ultimos_movimientos.map((m) => (
-                <li key={m.id} className="flex gap-3">
-                  <span className="text-ink-muted whitespace-nowrap">{m.creado_en?.slice(0, 16).replace('T', ' ')}</span>
-                  <span className="font-medium">{TIPO_LABEL[m.tipo] ?? m.tipo}</span>
-                  <span className="text-ink-muted">activo #{m.activo_id}</span>
-                </li>
-              ))}
-            </ol>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h2 className="text-lg font-semibold text-ink">Últimos movimientos</h2>
+            <Button variant="secondary" onClick={() => descargarMovimientosCsv(d.ultimos_movimientos)}>
+              Descargar Excel (CSV)
+            </Button>
+          </div>
+          <Card className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-ink-muted border-b border-border">
+                  <th className="px-4 py-3 font-medium">Fecha</th>
+                  <th className="px-4 py-3 font-medium">Tipo</th>
+                  <th className="px-4 py-3 font-medium">Código</th>
+                  <th className="px-4 py-3 font-medium">Activo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.ultimos_movimientos.map((m) => (
+                  <tr key={m.id} className="border-b border-border last:border-0">
+                    <td className="px-4 py-3 text-ink-muted whitespace-nowrap">{fechaCorta(m.creado_en)}</td>
+                    <td className="px-4 py-3 font-medium">{TIPO_LABEL[m.tipo] ?? m.tipo}</td>
+                    <td className="px-4 py-3 font-mono">{m.activo_codigo ?? `#${m.activo_id}`}</td>
+                    <td className="px-4 py-3">{m.activo_nombre ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </Card>
         </div>
       )}
     </div>
   )
+}
+
+function fechaCorta(s?: string): string {
+  return s ? s.slice(0, 16).replace('T', ' ') : ''
+}
+
+/** Genera y descarga un CSV (compatible con Excel: BOM UTF-8 + CRLF) de los movimientos mostrados. */
+function descargarMovimientosCsv(movimientos: Movimiento[]): void {
+  const encabezados = ['Fecha', 'Tipo', 'Código', 'Activo']
+  const filas = movimientos.map((m) => [
+    fechaCorta(m.creado_en),
+    TIPO_LABEL[m.tipo] ?? m.tipo,
+    m.activo_codigo ?? `#${m.activo_id}`,
+    m.activo_nombre ?? '',
+  ])
+  const escapar = (v: string) => `"${v.replace(/"/g, '""')}"`
+  const csv = [encabezados, ...filas].map((fila) => fila.map(escapar).join(',')).join('\r\n')
+
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const enlace = document.createElement('a')
+  enlace.href = url
+  enlace.download = 'ultimos-movimientos.csv'
+  enlace.click()
+  URL.revokeObjectURL(url)
 }

@@ -11,7 +11,10 @@ const resumen: ResumenDashboard = {
   prestamos_activos: 2,
   prestamos_vencidos: 1,
   ultimos_movimientos: [
-    { id: 1, activo_id: 3, tipo: 'prestamo', realizado_por: 1, creado_en: '2026-07-12T10:00:00' },
+    {
+      id: 1, activo_id: 3, tipo: 'prestamo', realizado_por: 1, creado_en: '2026-07-12T10:00:00',
+      activo_codigo: 'CMP-AVZ-001', activo_nombre: 'Laptop Dell',
+    },
   ],
   por_organizacion: [{ organizacion_id: 1, nombre: 'Avanza', total: 9 }],
 }
@@ -28,6 +31,9 @@ describe('Dashboard', () => {
     expect(screen.getByText('Préstamos vencidos')).toBeInTheDocument()
     expect(screen.getByText('Avanza')).toBeInTheDocument()
     expect(screen.getByText('Préstamo')).toBeInTheDocument()    // último movimiento
+    expect(screen.getByText('CMP-AVZ-001')).toBeInTheDocument() // código del activo
+    expect(screen.getByText('Laptop Dell')).toBeInTheDocument() // nombre del activo
+    expect(screen.getByRole('button', { name: /Descargar Excel/i })).toBeInTheDocument()
   })
 
   it('muestra error', () => {

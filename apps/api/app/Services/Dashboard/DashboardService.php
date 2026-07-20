@@ -54,11 +54,14 @@ final class DashboardService
         $prestamosVencidos = $db->table('prestamos p')->where('p.devuelto_en', null)
             ->where('p.devolucion_esperada <', $ahora)->countAllResults();
 
-        $ultimos = $db->table('movimientos')->select('id, activo_id, tipo, realizado_por, notas, creado_en')
-            ->orderBy('id', 'DESC')->limit(10)->get()->getResultArray();
+        $ultimos = $db->table('movimientos m')
+            ->select('m.id, m.activo_id, m.tipo, m.realizado_por, m.notas, m.creado_en, a.codigo AS activo_codigo, a.nombre AS activo_nombre')
+            ->join('activos a', 'a.id = m.activo_id', 'left')
+            ->orderBy('m.id', 'DESC')->limit(10)->get()->getResultArray();
         $ultimos = array_map(static fn ($m) => [
             'id' => (int) $m['id'], 'activo_id' => (int) $m['activo_id'], 'tipo' => $m['tipo'],
             'realizado_por' => (int) $m['realizado_por'], 'notas' => $m['notas'], 'creado_en' => $m['creado_en'],
+            'activo_codigo' => $m['activo_codigo'], 'activo_nombre' => $m['activo_nombre'],
         ], $ultimos);
 
         $porOrg = $db->table('organizaciones o')

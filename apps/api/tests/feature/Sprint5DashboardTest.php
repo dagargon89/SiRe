@@ -100,6 +100,22 @@ final class Sprint5DashboardTest extends CIUnitTestCase
         $this->assertSame([], $d['ultimos_movimientos']);     // parcial
     }
 
+    public function testUltimosMovimientosIncluyeNombreYCodigoDelActivo(): void
+    {
+        $act  = $this->crearActivo('disponible');
+        $fila = $this->db->table('activos')->where('id', $act)->get()->getRowArray();
+        $this->db->table('movimientos')->insert(['activo_id' => $act, 'tipo' => 'alta', 'realizado_por' => 1]);
+
+        $r = $this->withHeaders($this->h('a1'))->get('api/v1/dashboard');
+        $r->assertStatus(200);
+        $d = json_decode($r->getJSON(), true);
+        $this->assertNotEmpty($d['ultimos_movimientos']);
+        $mov = $d['ultimos_movimientos'][0];
+        $this->assertSame($act, $mov['activo_id']);
+        $this->assertSame($fila['nombre'], $mov['activo_nombre']);
+        $this->assertSame($fila['codigo'], $mov['activo_codigo']);
+    }
+
     public function testDashboardResumenEInvalidacion(): void
     {
         // Nota: en pruebas la caché es MockCache (no persiste); Redis provee el

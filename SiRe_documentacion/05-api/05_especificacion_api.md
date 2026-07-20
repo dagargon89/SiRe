@@ -160,6 +160,7 @@ export interface Prestamo {
 }
 export interface Movimiento {
   id: number; activo_id: number; tipo: TipoMovimiento;
+  activo_codigo?: string | null; activo_nombre?: string | null; // enriquecidos en ultimos_movimientos del dashboard (añadido tras Sprint 6)
   de_usuario_id?: number | null; a_usuario_id?: number | null;
   realizado_por: number; notas?: string; creado_en: string;
 }
