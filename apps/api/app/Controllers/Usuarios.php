@@ -212,6 +212,37 @@ class Usuarios extends ApiController
     }
 
     /** PATCH /usuarios/{id}/desactivar — administrador. No a sí mismo. */
+    /** GET /usuarios/{id}/activos — administrador o titular (PII). Equipos vigentes a cargo. */
+    public function activos(int $id): ResponseInterface
+    {
+        if (! PoliticaPii::puedeVer($this->actor(), $id)) {
+            return $this->error(403, 'sin_permiso_pii', 'No tienes permiso para ver estos equipos.');
+        }
+
+        $model = $this->model();
+        if ($model->find($id) === null) {
+            return $this->error(404, 'no_existe', 'Usuario no encontrado.');
+        }
+
+        $filas = $model->db->table('asignaciones a')
+            ->select('ac.id, ac.codigo, ac.nombre, ac.condicion, ac.estado')
+            ->join('activos ac', 'ac.id = a.activo_id')
+            ->where('a.usuario_id', $id)
+            ->where('a.revocada_en', null)
+            ->orderBy('ac.codigo', 'ASC')
+            ->get()->getResultArray();
+
+        $bienes = array_map(static fn (array $a): array => [
+            'id'        => (int) $a['id'],
+            'codigo'    => $a['codigo'],
+            'nombre'    => $a['nombre'],
+            'condicion' => $a['condicion'],
+            'estado'    => $a['estado'],
+        ], $filas);
+
+        return $this->ok($bienes);
+    }
+
     public function desactivar(int $id): ResponseInterface
     {
         $service = new DesactivarUsuarioService(service('firebaseAdmin'), $this->model());

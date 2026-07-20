@@ -56,6 +56,14 @@ export function useUsuarios(page = 1, estado?: EstadoUsuario) {
   return useQuery({ queryKey: ['usuarios', page, estado], queryFn: () => api.listarUsuarios(page, estado) })
 }
 
+export function useActivosACargo(id: number | undefined) {
+  return useQuery({
+    queryKey: ['activos-a-cargo', id],
+    queryFn: () => api.activosACargo(id!),
+    enabled: id != null,
+  })
+}
+
 export function useAprobarUsuario() {
   const qc = useQueryClient()
   return useMutation({

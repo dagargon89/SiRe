@@ -33,6 +33,11 @@ export interface Asignacion {
   usuario_nombre?: string | null          // enriquecido en la ficha (sprint pulido)
   asignada_en: string; revocada_en?: string | null; revocacion_motivo?: string
 }
+/** Equipo vigente a cargo de un usuario (GET /usuarios/{id}/activos). */
+export interface ActivoACargo {
+  id: number; codigo: string; nombre: string
+  condicion: CondicionActivo; estado: EstadoActivo
+}
 export interface Prestamo {
   id: number; activo_id: number; prestatario_id: number; prestamista_id: number
   activo_codigo?: string | null           // enriquecido para la UI (Sprint pulido)
@@ -83,6 +88,7 @@ export interface ApiClient {
   rechazarUsuario(id: number): Promise<Usuario>
   desactivarUsuario(id: number): Promise<void>
   descargarCarta(id: number): Promise<Blob>                  // PDF; admin o titular
+  activosACargo(id: number): Promise<ActivoACargo[]>         // resguardos vigentes; admin o titular
   // activos
   listarActivos(filtros?: FiltrosActivos): Promise<Paginado<Activo>>
   crearActivo(data: Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>): Promise<Activo>
@@ -221,6 +227,7 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
     rechazarUsuario: (id) => request('PATCH', `/usuarios/${id}/rechazar`, undefined),
     desactivarUsuario: (id) => request('PATCH', `/usuarios/${id}/desactivar`, undefined, 'void'),
     descargarCarta: (id) => request('GET', `/usuarios/${id}/carta`, undefined, 'blob'),
+    activosACargo: (id) => request('GET', `/usuarios/${id}/activos`),
 
     listarActivos: (filtros) =>
       request('GET', `/activos${toQuery(filtros as Record<string, unknown> | undefined)}`),

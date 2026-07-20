@@ -54,6 +54,7 @@
 | PATCH | `/api/v1/usuarios/{id}/rol` | administrador | Cambia rol (no a sí mismo; solo admin otorga admin) |
 | PATCH | `/api/v1/usuarios/{id}/desactivar` | administrador | Revoca tokens + inactiva (no a sí mismo) |
 | GET | `/api/v1/usuarios/{id}/carta` | administrador · titular | Carta responsiva PDF |
+| GET | `/api/v1/usuarios/{id}/activos` | administrador · titular | Equipos vigentes a cargo (resguardos activos) |
 
 ### Activos
 | Método | Ruta | Rol | Descripción |
@@ -144,6 +145,10 @@ export interface Asignacion {
   usuario_nombre?: string | null; // enriquecido en asignacion_vigente (sprint de pulido)
   asignada_en: string; revocada_en?: string | null; revocacion_motivo?: string;
 }
+export interface ActivoACargo { // equipos vigentes a cargo de un usuario (añadido tras Sprint 6)
+  id: number; codigo: string; nombre: string;
+  condicion: CondicionActivo; estado: EstadoActivo;
+}
 export interface Prestamo {
   id: number; activo_id: number; prestatario_id: number; prestamista_id: number;
   // Enriquecidos para la UI (sprint de pulido): código y nombres resueltos por el backend.
@@ -191,6 +196,7 @@ export interface ApiClient {
   cambiarRol(id: number, rol: Rol): Promise<Usuario>;
   desactivarUsuario(id: number): Promise<void>;
   descargarCarta(id: number): Promise<Blob>;                  // PDF; admin o titular
+  activosACargo(id: number): Promise<ActivoACargo[]>;         // resguardos vigentes; admin o titular (añadido tras Sprint 6)
   // activos
   listarActivos(filtros?: FiltrosActivos): Promise<Paginado<Activo>>;
   crearActivo(data: Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>): Promise<Activo>;

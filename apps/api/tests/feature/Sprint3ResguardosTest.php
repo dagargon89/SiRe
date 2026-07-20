@@ -183,4 +183,38 @@ final class Sprint3ResguardosTest extends CIUnitTestCase
         // pero sí la propia
         $this->withHeaders($h)->get('api/v1/usuarios/' . $otro . '/carta')->assertStatus(200);
     }
+
+    public function testActivosACargoListaSoloVigentes(): void
+    {
+        // Un activo asignado y otro asignado-luego-revocado; solo el vigente aparece.
+        $vigente = $this->crearActivo();
+        $this->withBodyFormat('json')->withHeaders($this->admin())
+            ->post('api/v1/asignaciones', ['activo_id' => $vigente, 'usuario_id' => $this->custodioId]);
+
+        $revocado = $this->crearActivo();
+        $this->withBodyFormat('json')->withHeaders($this->admin())
+            ->post('api/v1/asignaciones', ['activo_id' => $revocado, 'usuario_id' => $this->custodioId]);
+        $asigId = (int) $this->db->table('asignaciones')->orderBy('id', 'DESC')->get()->getRowArray()['id'];
+        $this->withBodyFormat('json')->withHeaders($this->admin())
+            ->patch('api/v1/asignaciones/' . $asigId . '/revocar', ['motivo' => 'fin']);
+
+        $r = $this->withHeaders($this->admin())->get('api/v1/usuarios/' . $this->custodioId . '/activos');
+        $r->assertStatus(200);
+        $cuerpo = json_decode($r->getJSON(), true);
+        $this->assertCount(1, $cuerpo);
+        $this->assertSame($vigente, $cuerpo[0]['id']);
+        $this->assertArrayHasKey('codigo', $cuerpo[0]);
+        $this->assertArrayHasKey('condicion', $cuerpo[0]);
+        $this->assertArrayHasKey('estado', $cuerpo[0]);
+    }
+
+    public function testActivosACargoRespetaPii(): void
+    {
+        $otro = $this->crearUsuario('custodio', 'c9');
+        $h    = $this->actuarComo('custodio', 'c9');
+        // No puede ver los equipos de otro custodio…
+        $this->withHeaders($h)->get('api/v1/usuarios/' . $this->custodioId . '/activos')->assertStatus(403);
+        // …pero sí los propios.
+        $this->withHeaders($h)->get('api/v1/usuarios/' . $otro . '/activos')->assertStatus(200);
+    }
 }
