@@ -51,6 +51,7 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     $routes->get('usuarios/(:num)', 'Usuarios::show/$1', $auth);   // PII: admin o titular (dentro)
     $routes->get('usuarios/(:num)/carta', 'Usuarios::carta/$1', $auth); // PII: admin o titular (dentro)
     $routes->get('usuarios/(:num)/activos', 'Usuarios::activos/$1', $auth); // PII: admin o titular (dentro)
+    $routes->get('usuarios/(:num)/prestamos', 'Usuarios::prestamos/$1', $auth); // PII: admin o titular (dentro)
     $routes->put('usuarios/(:num)', 'Usuarios::update/$1', $admin);
     $routes->patch('usuarios/(:num)/rol', 'Usuarios::rol/$1', $admin);
     $routes->patch('usuarios/(:num)/aprobar', 'Usuarios::aprobar/$1', $admin);

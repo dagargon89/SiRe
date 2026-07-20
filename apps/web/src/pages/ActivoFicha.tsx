@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { Field } from '../components/Field'
+import { Select } from '../components/Select'
+import { DatePicker } from '../components/DatePicker'
 import { Modal } from '../components/Modal'
 import { EstadoActivoBadge } from '../components/Badge'
 import { useAuth } from '../lib/auth'
@@ -78,6 +80,14 @@ export function ActivoFicha() {
           />
         )}
       </Card>
+
+      {activo.observaciones && (
+        <Card className="p-6 mb-4">
+          <h2 className="text-sm font-medium text-ink-muted mb-2">Observaciones</h2>
+          {/* HTML saneado en el servidor (SanitizadorHtml) antes de persistir. */}
+          <div className="sire-prose text-sm text-ink" dangerouslySetInnerHTML={{ __html: activo.observaciones }} />
+        </Card>
+      )}
 
       <div className="flex flex-wrap gap-2 mb-6">
         <Button variant="secondary" onClick={descargarEtiqueta}>Etiqueta (QR)</Button>
@@ -198,23 +208,19 @@ function ModalPrestar({ usuarios, onCerrar, onConfirmar }: {
   return (
     <Modal title="Prestar activo" onClose={onCerrar}>
       <div className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-ink">Prestatario</span>
-          <select value={uid} onChange={(e) => setUid(e.target.value === '' ? '' : Number(e.target.value))}
-            className="h-11 px-3 rounded-[6px] border border-border bg-surface text-ink text-sm">
-            <option value="">Selecciona…</option>
-            {usuarios.map((u) => <option key={u.id} value={u.id}>{u.nombre} ({u.rol})</option>)}
-          </select>
-        </label>
-        <Field label="Devolución esperada" type="datetime-local" value={devolucion}
-          onChange={(e) => setDevolucion(e.target.value)} required />
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-ink">Condición al prestar</span>
-          <select value={condicion} onChange={(e) => setCondicion(e.target.value as Exclude<CondicionActivo, 'baja'>)}
-            className="h-11 px-3 rounded-[6px] border border-border bg-surface text-ink text-sm">
-            {(['excelente', 'bueno', 'regular', 'malo'] as const).map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </label>
+        <Select
+          label="Prestatario"
+          value={uid === '' ? null : String(uid)}
+          onChange={(v) => setUid(v === '' ? '' : Number(v))}
+          options={usuarios.map((u) => ({ value: String(u.id), label: `${u.nombre} (${u.rol})` }))}
+        />
+        <DatePicker label="Devolución esperada" withTime value={devolucion} onChange={setDevolucion} />
+        <Select
+          label="Condición al prestar"
+          value={condicion}
+          onChange={(v) => setCondicion(v as Exclude<CondicionActivo, 'baja'>)}
+          options={(['excelente', 'bueno', 'regular', 'malo'] as const).map((c) => ({ value: c, label: c }))}
+        />
         <Field label="Notas (opcional)" value={notas} onChange={(e) => setNotas(e.target.value)} />
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onCerrar}>Cancelar</Button>
@@ -278,19 +284,12 @@ function ModalUsuario({ titulo, usuarios, onCerrar, onConfirmar }: {
   return (
     <Modal title={titulo} onClose={onCerrar}>
       <div className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-ink">Custodio</span>
-          <select
-            value={uid}
-            onChange={(e) => setUid(e.target.value === '' ? '' : Number(e.target.value))}
-            className="h-11 px-3 rounded-[6px] border border-border bg-surface text-ink text-sm"
-          >
-            <option value="">Selecciona…</option>
-            {usuarios.map((u) => (
-              <option key={u.id} value={u.id}>{u.nombre} ({u.rol})</option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label="Custodio"
+          value={uid === '' ? null : String(uid)}
+          onChange={(v) => setUid(v === '' ? '' : Number(v))}
+          options={usuarios.map((u) => ({ value: String(u.id), label: `${u.nombre} (${u.rol})` }))}
+        />
         <Field label="Notas (opcional)" value={notas} onChange={(e) => setNotas(e.target.value)} />
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onCerrar}>Cancelar</Button>

@@ -3,6 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { Field } from '../components/Field'
+import { Select } from '../components/Select'
+import { DatePicker } from '../components/DatePicker'
+import { RichText } from '../components/RichText'
 import { ApiError, type CondicionActivo } from '../lib/api'
 import { useActivo, useCategorias, useGuardarActivo, useOrganizaciones } from '../lib/queries'
 
@@ -39,6 +42,7 @@ export function ActivoForm() {
         descripcion: val('descripcion') || undefined,
         categoria_id: Number(val('categoria_id')),
         organizacion_id: Number(val('organizacion_id')),
+        observaciones: val('observaciones') || undefined,
         marca: val('marca') || undefined,
         modelo: val('modelo') || undefined,
         serie: val('serie') || undefined,
@@ -67,22 +71,26 @@ export function ActivoForm() {
             <Field label="Nombre" value={val('nombre')} onChange={(e) => set('nombre', e.target.value)} required />
           </div>
 
-          <Selector label="Categoría" value={val('categoria_id')} disabled={!!editId}
+          <Select label="Categoría" value={val('categoria_id') || null} disabled={!!editId}
             onChange={(v) => set('categoria_id', v)}
-            options={(cats.data ?? []).filter((c) => c.is_active).map((c) => ({ value: c.id, label: `${c.nombre} (${c.clave})` }))} />
-          <Selector label="Organización" value={val('organizacion_id')} disabled={!!editId}
+            options={(cats.data ?? []).filter((c) => c.is_active).map((c) => ({ value: String(c.id), label: `${c.nombre} (${c.clave})` }))} />
+          <Select label="Organización" value={val('organizacion_id') || null} disabled={!!editId}
             onChange={(v) => set('organizacion_id', v)}
-            options={(orgs.data ?? []).filter((o) => o.is_active).map((o) => ({ value: o.id, label: `${o.nombre} (${o.clave})` }))} />
+            options={(orgs.data ?? []).filter((o) => o.is_active).map((o) => ({ value: String(o.id), label: `${o.nombre} (${o.clave})` }))} />
 
           <Field label="Marca" value={val('marca')} onChange={(e) => set('marca', e.target.value)} />
           <Field label="Modelo" value={val('modelo')} onChange={(e) => set('modelo', e.target.value)} />
           <Field label="Serie" value={val('serie')} onChange={(e) => set('serie', e.target.value)} />
-          <Selector label="Condición" value={val('condicion')} onChange={(v) => set('condicion', v)}
+          <Select label="Condición" value={val('condicion') || null} onChange={(v) => set('condicion', v)}
             options={CONDICIONES.map((c) => ({ value: c, label: c }))} />
           <Field label="Proveedor" value={val('proveedor')} onChange={(e) => set('proveedor', e.target.value)} />
           <Field label="N.º de factura" value={val('factura_numero')} onChange={(e) => set('factura_numero', e.target.value)} />
-          <Field label="Fecha de compra" type="date" value={val('fecha_compra')} onChange={(e) => set('fecha_compra', e.target.value)} />
+          <DatePicker label="Fecha de compra" value={val('fecha_compra')} onChange={(v) => set('fecha_compra', v)} />
           <Field label="Valor de compra" type="number" step="0.01" value={val('valor_compra')} onChange={(e) => set('valor_compra', e.target.value)} />
+
+          <div className="col-span-2">
+            <RichText label="Observaciones" value={val('observaciones')} onChange={(v) => set('observaciones', v)} />
+          </div>
 
           {error && <p className="col-span-2 text-sm text-danger">{error}</p>}
           <div className="col-span-2 flex justify-end gap-2 pt-2">
@@ -95,29 +103,3 @@ export function ActivoForm() {
   )
 }
 
-function Selector({
-  label, value, options, onChange, disabled,
-}: {
-  label: string
-  value: string
-  options: { value: string | number; label: string }[]
-  onChange: (v: string) => void
-  disabled?: boolean
-}) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="text-sm font-medium text-ink">{label}</span>
-      <select
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-11 px-3 rounded-[6px] border border-border bg-surface text-ink text-sm disabled:opacity-60"
-      >
-        <option value="">Selecciona…</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-    </label>
-  )
-}

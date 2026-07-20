@@ -14,7 +14,7 @@ class ActivoModel extends Model
     protected $useTimestamps = false;
 
     protected $allowedFields = [
-        'codigo', 'categoria_id', 'organizacion_id', 'nombre', 'descripcion',
+        'codigo', 'categoria_id', 'organizacion_id', 'nombre', 'descripcion', 'observaciones',
         'marca', 'modelo', 'serie', 'fecha_compra', 'valor_compra', 'proveedor',
         'factura_numero', 'factura_archivo_ref', 'qr_archivo_ref',
         'condicion', 'estado', 'baja_motivo', 'creado_por', 'actualizado_por',

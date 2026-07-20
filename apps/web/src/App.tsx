@@ -6,6 +6,7 @@ import { AppShell } from './layout/AppShell'
 import { Organizaciones } from './pages/Organizaciones'
 import { Categorias } from './pages/Categorias'
 import { Usuarios } from './pages/Usuarios'
+import { UsuarioDetalle } from './pages/UsuarioDetalle'
 import { Perfil } from './pages/Perfil'
 import { Activos } from './pages/Activos'
 import { ActivoFicha } from './pages/ActivoFicha'
@@ -51,6 +52,7 @@ function App() {
           {esAdmin && <Route path="organizaciones" element={<Organizaciones />} />}
           {esAdmin && <Route path="categorias" element={<Categorias />} />}
           {esAdmin && <Route path="usuarios" element={<Usuarios />} />}
+          {esAdmin && <Route path="usuarios/:id" element={<UsuarioDetalle />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

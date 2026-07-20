@@ -181,4 +181,37 @@ final class Sprint4PrestamosTest extends CIUnitTestCase
         $this->assertContains('a1@demo.test', $mailer->enviados[0]['destinatarios']);
         $this->seeInDatabase('avisos_prestamo', ['tipo' => 'vencido']);
     }
+
+    public function testPrestamosDeUsuarioListaSoloVigentes(): void
+    {
+        // Un préstamo vigente y otro que se devuelve; solo el vigente aparece.
+        $vigente = $this->crearActivo();
+        $this->prestar($vigente);
+
+        $devuelto = $this->crearActivo();
+        $this->prestar($devuelto);
+        $pid = (int) $this->db->table('prestamos')->where('activo_id', $devuelto)->get()->getRowArray()['id'];
+        $this->withBodyFormat('json')->withHeaders($this->admin())
+            ->patch('api/v1/prestamos/' . $pid . '/devolver', ['condicion_devolucion' => 'bueno']);
+
+        $r = $this->withHeaders($this->admin())->get('api/v1/usuarios/' . $this->custodioId . '/prestamos');
+        $r->assertStatus(200);
+        $cuerpo = json_decode($r->getJSON(), true);
+        $this->assertCount(1, $cuerpo);
+        $this->assertSame($vigente, $cuerpo[0]['activo_id']);
+        $this->assertArrayHasKey('activo_codigo', $cuerpo[0]);
+        $this->assertArrayHasKey('activo_nombre', $cuerpo[0]);
+        $this->assertSame('activo', $cuerpo[0]['estado']);
+    }
+
+    public function testPrestamosDeUsuarioRespetaPii(): void
+    {
+        $otro = $this->crearUsuario('custodio', 'c9');
+        $this->verifier->conToken('tok-c9', 'c9');
+        $h = ['Authorization' => 'Bearer tok-c9'];
+        // Un custodio no ve los préstamos de otro…
+        $this->withHeaders($h)->get('api/v1/usuarios/' . $this->custodioId . '/prestamos')->assertStatus(403);
+        // …pero sí los propios.
+        $this->withHeaders($h)->get('api/v1/usuarios/' . $otro . '/prestamos')->assertStatus(200);
+    }
 }

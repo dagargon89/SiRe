@@ -64,6 +64,22 @@ export function useActivosACargo(id: number | undefined) {
   })
 }
 
+export function usePrestamosDeUsuario(id: number | undefined) {
+  return useQuery({
+    queryKey: ['prestamos-de-usuario', id],
+    queryFn: () => api.prestamosDeUsuario(id!),
+    enabled: id != null,
+  })
+}
+
+export function useUsuario(id: number | undefined) {
+  return useQuery({
+    queryKey: ['usuario', id],
+    queryFn: () => api.obtenerUsuario(id!),
+    enabled: id != null,
+  })
+}
+
 export function useAprobarUsuario() {
   const qc = useQueryClient()
   return useMutation({

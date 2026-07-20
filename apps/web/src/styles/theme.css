@@ -130,3 +130,18 @@ body {
 table {
   font-variant-numeric: tabular-nums;
 }
+
+/* Texto enriquecido (WYSIWYG): editor y visualización. Tailwind resetea las
+   listas, así que restauramos el formato básico permitido por el saneador. */
+.sire-prose p { margin: 0.25rem 0; }
+.sire-prose ul { list-style: disc; padding-left: 1.25rem; margin: 0.25rem 0; }
+.sire-prose ol { list-style: decimal; padding-left: 1.5rem; margin: 0.25rem 0; }
+.sire-prose li { margin: 0.125rem 0; }
+.sire-prose a { color: var(--sire-accent); text-decoration: underline; }
+
+/* Placeholder del editor contenteditable cuando está vacío. */
+[contenteditable][data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--sire-text-muted);
+  pointer-events: none;
+}

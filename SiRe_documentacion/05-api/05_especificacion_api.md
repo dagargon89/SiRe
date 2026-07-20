@@ -55,6 +55,7 @@
 | PATCH | `/api/v1/usuarios/{id}/desactivar` | administrador | Revoca tokens + inactiva (no a sí mismo) |
 | GET | `/api/v1/usuarios/{id}/carta` | administrador · titular | Carta responsiva PDF |
 | GET | `/api/v1/usuarios/{id}/activos` | administrador · titular | Equipos vigentes a cargo (resguardos activos) |
+| GET | `/api/v1/usuarios/{id}/prestamos` | administrador · titular | Préstamos vigentes del usuario (como prestatario) |
 
 ### Activos
 | Método | Ruta | Rol | Descripción |
@@ -134,6 +135,7 @@ export interface Usuario {
 }
 export interface Activo {
   id: number; codigo: string; nombre: string; descripcion?: string;
+  observaciones?: string | null; // HTML enriquecido (WYSIWYG); saneado en el servidor (añadido tras Sprint 6)
   categoria_id: number; organizacion_id: number;
   marca?: string; modelo?: string; serie?: string;
   fecha_compra?: string; valor_compra?: number; proveedor?: string; factura_numero?: string;
@@ -148,6 +150,12 @@ export interface Asignacion {
 export interface ActivoACargo { // equipos vigentes a cargo de un usuario (añadido tras Sprint 6)
   id: number; codigo: string; nombre: string;
   condicion: CondicionActivo; estado: EstadoActivo;
+}
+export interface PrestamoDeUsuario { // préstamos vigentes del usuario como prestatario (añadido tras Sprint 6)
+  id: number; activo_id: number;
+  activo_codigo: string; activo_nombre: string;
+  prestado_en: string; devolucion_esperada: string;
+  estado: EstadoPrestamo;
 }
 export interface Prestamo {
   id: number; activo_id: number; prestatario_id: number; prestamista_id: number;
@@ -198,6 +206,7 @@ export interface ApiClient {
   desactivarUsuario(id: number): Promise<void>;
   descargarCarta(id: number): Promise<Blob>;                  // PDF; admin o titular
   activosACargo(id: number): Promise<ActivoACargo[]>;         // resguardos vigentes; admin o titular (añadido tras Sprint 6)
+  prestamosDeUsuario(id: number): Promise<PrestamoDeUsuario[]>; // préstamos vigentes; admin o titular (añadido tras Sprint 6)
   // activos
   listarActivos(filtros?: FiltrosActivos): Promise<Paginado<Activo>>;
   crearActivo(data: Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>): Promise<Activo>;

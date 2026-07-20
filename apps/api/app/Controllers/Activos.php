@@ -35,6 +35,7 @@ class Activos extends ApiController
             'codigo'          => $a['codigo'],
             'nombre'          => $a['nombre'],
             'descripcion'     => $a['descripcion'],
+            'observaciones'   => $a['observaciones'] ?? null,
             'categoria_id'    => (int) $a['categoria_id'],
             'organizacion_id' => (int) $a['organizacion_id'],
             'marca'           => $a['marca'],
@@ -146,12 +147,14 @@ class Activos extends ApiController
         }
 
         $data    = $this->body();
-        $editable = ['nombre', 'descripcion', 'marca', 'modelo', 'serie', 'fecha_compra',
+        $editable = ['nombre', 'descripcion', 'observaciones', 'marca', 'modelo', 'serie', 'fecha_compra',
             'valor_compra', 'proveedor', 'factura_numero', 'condicion'];
         $payload = ['actualizado_por' => (int) $this->actor()['id']];
         foreach ($editable as $campo) {
             if (array_key_exists($campo, $data)) {
-                $payload[$campo] = $data[$campo];
+                $payload[$campo] = $campo === 'observaciones'
+                    ? \App\Services\Html\SanitizadorHtml::limpiar($data[$campo])
+                    : $data[$campo];
             }
         }
 

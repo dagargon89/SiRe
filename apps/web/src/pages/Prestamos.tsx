@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { Modal } from '../components/Modal'
+import { Select } from '../components/Select'
 import { Pagination } from '../components/Pagination'
 import { EstadoPrestamoBadge } from '../components/Badge'
 import { useAuth } from '../lib/auth'
@@ -119,18 +120,12 @@ function ModalDevolver({ prestamo, onCerrar }: { prestamo: Prestamo; onCerrar: (
   return (
     <Modal title={`Devolver préstamo (activo #${prestamo.activo_id})`} onClose={onCerrar}>
       <div className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-ink">Condición de devolución</span>
-          <select
-            value={condicion}
-            onChange={(e) => setCondicion(e.target.value as Exclude<CondicionActivo, 'baja'>)}
-            className="h-11 px-3 rounded-[6px] border border-border bg-surface text-ink text-sm"
-          >
-            {(['excelente', 'bueno', 'regular', 'malo'] as const).map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label="Condición de devolución"
+          value={condicion}
+          onChange={(v) => setCondicion(v as Exclude<CondicionActivo, 'baja'>)}
+          options={(['excelente', 'bueno', 'regular', 'malo'] as const).map((c) => ({ value: c, label: c }))}
+        />
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onCerrar}>Cancelar</Button>
           <Button

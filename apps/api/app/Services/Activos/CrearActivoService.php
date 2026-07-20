@@ -6,6 +6,7 @@ namespace App\Services\Activos;
 
 use App\Models\ActivoModel;
 use App\Models\MovimientoModel;
+use App\Services\Html\SanitizadorHtml;
 use App\Services\ServiceException;
 use Throwable;
 
@@ -49,6 +50,7 @@ final class CrearActivoService
                 'organizacion_id' => $organizacionId,
                 'nombre'          => (string) $data['nombre'],
                 'descripcion'     => $data['descripcion'] ?? null,
+                'observaciones'   => SanitizadorHtml::limpiar($data['observaciones'] ?? null),
                 'marca'           => $data['marca'] ?? null,
                 'modelo'          => $data['modelo'] ?? null,
                 'serie'           => $data['serie'] ?? null,

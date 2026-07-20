@@ -22,6 +22,7 @@ export interface Usuario {
 }
 export interface Activo {
   id: number; codigo: string; nombre: string; descripcion?: string
+  observaciones?: string | null          // HTML enriquecido (WYSIWYG), saneado en el servidor
   categoria_id: number; organizacion_id: number
   marca?: string; modelo?: string; serie?: string
   fecha_compra?: string; valor_compra?: number; proveedor?: string; factura_numero?: string
@@ -37,6 +38,13 @@ export interface Asignacion {
 export interface ActivoACargo {
   id: number; codigo: string; nombre: string
   condicion: CondicionActivo; estado: EstadoActivo
+}
+/** Préstamo vigente de un usuario como prestatario (GET /usuarios/{id}/prestamos). */
+export interface PrestamoDeUsuario {
+  id: number; activo_id: number
+  activo_codigo: string; activo_nombre: string
+  prestado_en: string; devolucion_esperada: string
+  estado: EstadoPrestamo
 }
 export interface Prestamo {
   id: number; activo_id: number; prestatario_id: number; prestamista_id: number
@@ -91,6 +99,7 @@ export interface ApiClient {
   desactivarUsuario(id: number): Promise<void>
   descargarCarta(id: number): Promise<Blob>                  // PDF; admin o titular
   activosACargo(id: number): Promise<ActivoACargo[]>         // resguardos vigentes; admin o titular
+  prestamosDeUsuario(id: number): Promise<PrestamoDeUsuario[]> // préstamos vigentes; admin o titular
   // activos
   listarActivos(filtros?: FiltrosActivos): Promise<Paginado<Activo>>
   crearActivo(data: Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>): Promise<Activo>
@@ -230,6 +239,7 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
     desactivarUsuario: (id) => request('PATCH', `/usuarios/${id}/desactivar`, undefined, 'void'),
     descargarCarta: (id) => request('GET', `/usuarios/${id}/carta`, undefined, 'blob'),
     activosACargo: (id) => request('GET', `/usuarios/${id}/activos`),
+    prestamosDeUsuario: (id) => request('GET', `/usuarios/${id}/prestamos`),
 
     listarActivos: (filtros) =>
       request('GET', `/activos${toQuery(filtros as Record<string, unknown> | undefined)}`),

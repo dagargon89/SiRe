@@ -76,6 +76,19 @@ final class Sprint2ActivosTest extends CIUnitTestCase
         $this->seeInDatabase('movimientos', ['tipo' => 'alta']);
     }
 
+    public function testObservacionesSeGuardanSaneadas(): void
+    {
+        $h = $this->actuarComo('administrador', 'a1');
+        $r = $this->withBodyFormat('json')->withHeaders($h)->post('api/v1/activos', $this->payload([
+            'observaciones' => '<p>Revisar <b>batería</b></p><script>alert(1)</script>',
+        ]));
+        $r->assertStatus(201);
+        $obs = json_decode($r->getJSON(), true)['observaciones'];
+        $this->assertStringContainsString('<b>batería</b>', $obs);
+        $this->assertStringNotContainsString('<script', $obs);
+        $this->assertStringNotContainsString('alert(1)', $obs);
+    }
+
     public function testCodigosCorrelativosSinColision(): void
     {
         $h = $this->actuarComo('administrador', 'a1');

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Models\PrestamoModel;
 use App\Models\UsuarioModel;
 use App\Services\Resguardos\CartaResponsiva;
 use App\Services\ServiceException;
@@ -241,6 +242,40 @@ class Usuarios extends ApiController
         ], $filas);
 
         return $this->ok($bienes);
+    }
+
+    /** GET /usuarios/{id}/prestamos — administrador o titular (PII). Préstamos vigentes (no devueltos). */
+    public function prestamos(int $id): ResponseInterface
+    {
+        if (! PoliticaPii::puedeVer($this->actor(), $id)) {
+            return $this->error(403, 'sin_permiso_pii', 'No tienes permiso para ver estos préstamos.');
+        }
+
+        $model = $this->model();
+        if ($model->find($id) === null) {
+            return $this->error(404, 'no_existe', 'Usuario no encontrado.');
+        }
+
+        $ahora = date('Y-m-d H:i:s');
+        $filas = $model->db->table('prestamos p')
+            ->select('p.id, p.activo_id, p.prestado_en, p.devolucion_esperada, p.devuelto_en, ac.codigo AS activo_codigo, ac.nombre AS activo_nombre')
+            ->join('activos ac', 'ac.id = p.activo_id')
+            ->where('p.prestatario_id', $id)
+            ->where('p.devuelto_en', null) // solo vigentes
+            ->orderBy('p.devolucion_esperada', 'ASC')
+            ->get()->getResultArray();
+
+        $prestamos = array_map(static fn (array $p): array => [
+            'id'                  => (int) $p['id'],
+            'activo_id'           => (int) $p['activo_id'],
+            'activo_codigo'       => $p['activo_codigo'],
+            'activo_nombre'       => $p['activo_nombre'],
+            'prestado_en'         => $p['prestado_en'],
+            'devolucion_esperada' => $p['devolucion_esperada'],
+            'estado'              => PrestamoModel::estadoDerivado($p, $ahora),
+        ], $filas);
+
+        return $this->ok($prestamos);
     }
 
     public function desactivar(int $id): ResponseInterface

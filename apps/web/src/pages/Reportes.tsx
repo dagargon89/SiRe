@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
-import { Field } from '../components/Field'
+import { DatePicker } from '../components/DatePicker'
 import { api } from '../lib/apiClient'
 
 function abrirBlob(blob: Blob) {
@@ -39,8 +39,8 @@ export function Reportes() {
         <h2 className="text-lg font-semibold text-ink mb-1">Movimientos</h2>
         <p className="text-ink-muted text-sm mb-4">PDF de la bitácora por rango de fechas.</p>
         <div className="flex flex-wrap gap-4 items-end">
-          <Field label="Desde" type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
-          <Field label="Hasta" type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+          <DatePicker label="Desde" value={desde} onChange={setDesde} className="w-44" />
+          <DatePicker label="Hasta" value={hasta} onChange={setHasta} className="w-44" />
           <Button onClick={movimientos} disabled={cargando === 'mov'}>
             {cargando === 'mov' ? 'Generando…' : 'Descargar movimientos (PDF)'}
           </Button>

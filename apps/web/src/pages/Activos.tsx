@@ -4,6 +4,7 @@ import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { Pagination } from '../components/Pagination'
 import { EstadoActivoBadge } from '../components/Badge'
+import { Select } from '../components/Select'
 import { useAuth } from '../lib/auth'
 import { useActivos, useOrganizaciones, useCategorias } from '../lib/queries'
 import type { EstadoActivo, FiltrosActivos } from '../lib/api'
@@ -41,12 +42,15 @@ export function Activos() {
           className="h-10 px-3 rounded-md border border-border bg-surface text-ink text-sm flex-1 min-w-[180px]"
           onChange={(e) => set({ q: e.target.value })}
         />
-        <FiltroSelect label="Categoría" onChange={(v) => set({ categoria_id: v ? Number(v) : undefined })}
-          options={(cats.data ?? []).map((c) => ({ value: c.id, label: c.nombre }))} />
-        <FiltroSelect label="Organización" onChange={(v) => set({ organizacion_id: v ? Number(v) : undefined })}
-          options={(orgs.data ?? []).map((o) => ({ value: o.id, label: o.nombre }))} />
-        <FiltroSelect label="Estado" onChange={(v) => set({ estado: (v || undefined) as EstadoActivo | undefined })}
-          options={ESTADOS.map((e) => ({ value: e, label: e }))} />
+        <Select label="Categoría" className="w-44" value={filtros.categoria_id != null ? String(filtros.categoria_id) : ''}
+          onChange={(v) => set({ categoria_id: v ? Number(v) : undefined })}
+          options={[{ value: '', label: 'Todas' }, ...(cats.data ?? []).map((c) => ({ value: String(c.id), label: c.nombre }))]} />
+        <Select label="Organización" className="w-44" value={filtros.organizacion_id != null ? String(filtros.organizacion_id) : ''}
+          onChange={(v) => set({ organizacion_id: v ? Number(v) : undefined })}
+          options={[{ value: '', label: 'Todas' }, ...(orgs.data ?? []).map((o) => ({ value: String(o.id), label: o.nombre }))]} />
+        <Select label="Estado" className="w-44" value={filtros.estado ?? ''}
+          onChange={(v) => set({ estado: (v || undefined) as EstadoActivo | undefined })}
+          options={[{ value: '', label: 'Todos' }, ...ESTADOS.map((e) => ({ value: e, label: e }))]} />
       </Card>
 
       {q.isLoading && <p className="text-ink-muted py-8">Cargando…</p>}
@@ -106,27 +110,3 @@ export function Activos() {
   )
 }
 
-function FiltroSelect({
-  label,
-  options,
-  onChange,
-}: {
-  label: string
-  options: { value: string | number; label: string }[]
-  onChange: (v: string) => void
-}) {
-  return (
-    <label className="flex flex-col gap-1 text-xs text-ink-muted">
-      {label}
-      <select
-        className="h-10 px-2 rounded-md border border-border bg-surface text-ink text-sm"
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="">Todas</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-    </label>
-  )
-}

@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { Field } from '../components/Field'
 import { Modal } from '../components/Modal'
+import { Select } from '../components/Select'
 import { Pagination } from '../components/Pagination'
 import { ActivaBadge } from '../components/Badge'
 import { useAuth } from '../lib/auth'
@@ -100,22 +102,24 @@ export function Usuarios() {
                 const pendienteORech = u.estado === 'pendiente' || u.estado === 'rechazado'
                 return (
                   <tr key={u.id} className="border-b border-border last:border-0 hover:bg-surface-2">
-                    <td className="px-4 py-3">{u.nombre}</td>
+                    <td className="px-4 py-3">
+                      <Link to={`/usuarios/${u.id}`} className="text-accent hover:underline">{u.nombre}</Link>
+                    </td>
                     <td className="px-4 py-3 text-ink-muted">{u.email}</td>
                     <td className="px-4 py-3 max-md:hidden text-ink-muted">{nombreOrg(u.organizacion_id)}</td>
                     <td className="px-4 py-3">
                       {pendienteORech ? (
                         <span className="text-ink-muted">—</span>
                       ) : (
-                        <select
-                          aria-label={`Rol de ${u.nombre}`}
+                        <Select
+                          ariaLabel={`Rol de ${u.nombre}`}
+                          size="sm"
+                          className="w-40"
                           value={u.rol}
                           disabled={esYo}
-                          onChange={(e) => void cambiarRol.mutate({ id: u.id, rol: e.target.value as Rol })}
-                          className="border border-border rounded-md bg-surface text-ink px-2 py-1 text-sm disabled:opacity-50"
-                        >
-                          {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                        </select>
+                          onChange={(v) => void cambiarRol.mutate({ id: u.id, rol: v as Rol })}
+                          options={ROLES.map((r) => ({ value: r, label: r }))}
+                        />
                       )}
                     </td>
                     <td className="px-4 py-3"><EstadoBadge u={u} /></td>
@@ -205,23 +209,11 @@ function ModalAprobar({ usuario, onCerrar }: { usuario: Usuario; onCerrar: () =>
     <Modal title={`Aprobar a ${usuario.nombre}`} onClose={onCerrar}>
       <form onSubmit={submit} className="flex flex-col gap-4">
         <p className="text-sm text-ink-muted">{usuario.email}</p>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="ap-rol" className="text-sm font-medium text-ink">Rol</label>
-          <select id="ap-rol" value={rol} onChange={(e) => setRol(e.target.value as Rol)}
-            className="h-11 px-3 rounded-[6px] border border-border bg-surface text-ink text-sm">
-            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="ap-org" className="text-sm font-medium text-ink">Organización de origen</label>
-          <select id="ap-org" value={orgId} onChange={(e) => setOrgId(e.target.value === '' ? '' : Number(e.target.value))}
-            className="h-11 px-3 rounded-[6px] border border-border bg-surface text-ink text-sm">
-            <option value="">Selecciona…</option>
-            {orgs.data?.filter((o) => o.is_active).map((o) => (
-              <option key={o.id} value={o.id}>{o.nombre} ({o.clave})</option>
-            ))}
-          </select>
-        </div>
+        <Select label="Rol" value={rol} onChange={(v) => setRol(v as Rol)}
+          options={ROLES.map((r) => ({ value: r, label: r }))} />
+        <Select label="Organización de origen" value={orgId === '' ? null : String(orgId)}
+          onChange={(v) => setOrgId(v === '' ? '' : Number(v))}
+          options={(orgs.data ?? []).filter((o) => o.is_active).map((o) => ({ value: String(o.id), label: `${o.nombre} (${o.clave})` }))} />
         {error && <p className="text-sm text-danger">{error}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onCerrar}>Cancelar</Button>
@@ -267,23 +259,11 @@ function FormularioUsuario({ onCerrar }: { onCerrar: () => void }) {
       <form onSubmit={submit} className="flex flex-col gap-4">
         <Field label="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} required />
         <Field label="Correo" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <div className="flex flex-col gap-1">
-          <label htmlFor="u-rol" className="text-sm font-medium text-ink">Rol</label>
-          <select id="u-rol" value={rol} onChange={(e) => setRol(e.target.value as Rol)}
-            className="h-11 px-3 rounded-[6px] border border-border bg-surface text-ink text-sm">
-            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="u-org" className="text-sm font-medium text-ink">Organización de origen</label>
-          <select id="u-org" value={orgId} onChange={(e) => setOrgId(e.target.value === '' ? '' : Number(e.target.value))}
-            className="h-11 px-3 rounded-[6px] border border-border bg-surface text-ink text-sm">
-            <option value="">Selecciona…</option>
-            {orgs.data?.filter((o) => o.is_active).map((o) => (
-              <option key={o.id} value={o.id}>{o.nombre} ({o.clave})</option>
-            ))}
-          </select>
-        </div>
+        <Select label="Rol" value={rol} onChange={(v) => setRol(v as Rol)}
+          options={ROLES.map((r) => ({ value: r, label: r }))} />
+        <Select label="Organización de origen" value={orgId === '' ? null : String(orgId)}
+          onChange={(v) => setOrgId(v === '' ? '' : Number(v))}
+          options={(orgs.data ?? []).filter((o) => o.is_active).map((o) => ({ value: String(o.id), label: `${o.nombre} (${o.clave})` }))} />
         {error && <p className="text-sm text-danger">{error}</p>}
         <p className="text-xs text-ink-muted">
           El usuario recibirá acceso con este correo; define su contraseña mediante «restablecer contraseña».
