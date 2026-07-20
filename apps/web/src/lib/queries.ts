@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './apiClient'
-import type { Activo, CondicionActivo, EstadoPrestamo, EstadoUsuario, FiltrosActivos, Rol } from './api'
+import type { Activo, CondicionActivo, EstadoPrestamo, FiltroUsuarios, FiltrosActivos, Rol } from './api'
 
 // ─── Organizaciones ───────────────────────────────────────────────
 export function useOrganizaciones() {
@@ -52,7 +52,7 @@ export function useEstadoCategoria() {
 }
 
 // ─── Usuarios ─────────────────────────────────────────────────────
-export function useUsuarios(page = 1, estado?: EstadoUsuario) {
+export function useUsuarios(page = 1, estado?: FiltroUsuarios) {
   return useQuery({ queryKey: ['usuarios', page, estado], queryFn: () => api.listarUsuarios(page, estado) })
 }
 
@@ -121,6 +121,7 @@ export function useDesactivarUsuario() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['usuarios'] }),
   })
 }
+
 
 // ─── Activos ──────────────────────────────────────────────────────
 export function useActivos(filtros: FiltrosActivos) {

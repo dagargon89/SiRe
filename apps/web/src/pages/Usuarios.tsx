@@ -10,7 +10,7 @@ import { ActivaBadge } from '../components/Badge'
 import { useAuth } from '../lib/auth'
 import { useToast } from '../lib/toast'
 import { api } from '../lib/apiClient'
-import { ApiError, type EstadoUsuario, type Rol, type Usuario } from '../lib/api'
+import { ApiError, type FiltroUsuarios, type Rol, type Usuario } from '../lib/api'
 import {
   useUsuarios, useCrearUsuario, useCambiarRol, useDesactivarUsuario,
   useOrganizaciones, useAprobarUsuario, useRechazarUsuario,
@@ -18,11 +18,12 @@ import {
 
 const ROLES: Rol[] = ['administrador', 'custodio', 'auditor']
 
-const FILTROS: { value: EstadoUsuario | ''; label: string }[] = [
+const FILTROS: { value: FiltroUsuarios | ''; label: string }[] = [
   { value: '', label: 'Todos' },
   { value: 'pendiente', label: 'Pendientes' },
   { value: 'aprobado', label: 'Aprobados' },
   { value: 'rechazado', label: 'Rechazados' },
+  { value: 'desactivado', label: 'Desactivados' },
 ]
 
 function EstadoBadge({ u }: { u: Usuario }) {
@@ -39,7 +40,7 @@ export function Usuarios() {
   const { perfil } = useAuth()
   const toast = useToast()
   const [page, setPage] = useState(1)
-  const [estado, setEstado] = useState<EstadoUsuario | ''>('')
+  const [estado, setEstado] = useState<FiltroUsuarios | ''>('')
   const q = useUsuarios(page, estado || undefined)
   const orgs = useOrganizaciones()
   const cambiarRol = useCambiarRol()
@@ -52,7 +53,7 @@ export function Usuarios() {
   const nombreOrg = (id: number | null) =>
     id == null ? '—' : (orgs.data?.find((o) => o.id === id)?.nombre ?? '—')
 
-  function filtrar(e: EstadoUsuario | '') {
+  function filtrar(e: FiltroUsuarios | '') {
     setEstado(e)
     setPage(1)
   }

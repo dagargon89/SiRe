@@ -121,6 +121,8 @@ export type Rol = 'administrador' | 'custodio' | 'auditor';
 export type CondicionActivo = 'excelente' | 'bueno' | 'regular' | 'malo' | 'baja';
 export type EstadoActivo = 'disponible' | 'asignado' | 'prestado' | 'mantenimiento' | 'baja';
 export type EstadoPrestamo = 'activo' | 'vencido' | 'devuelto';
+export type EstadoUsuario = 'pendiente' | 'aprobado' | 'rechazado';
+export type FiltroUsuarios = EstadoUsuario | 'desactivado'; // 'desactivado' = aprobados con is_active=0
 export type TipoMovimiento =
   | 'alta' | 'asignacion' | 'revocacion' | 'prestamo'
   | 'devolucion' | 'transferencia' | 'mantenimiento' | 'baja';
@@ -198,7 +200,7 @@ export interface ApiClient {
   editarCategoria(id: number, data: { nombre: string; clave: string }): Promise<Categoria>;
   cambiarEstadoCategoria(id: number, activa: boolean): Promise<Categoria>;
   // usuarios
-  listarUsuarios(page?: number): Promise<Paginado<Usuario>>;
+  listarUsuarios(page?: number, estado?: FiltroUsuarios): Promise<Paginado<Usuario>>; // 'desactivado' filtra aprobados con is_active=0 (añadido tras Sprint 6)
   crearUsuario(data: { nombre: string; email: string; rol: Rol; organizacion_id: number }): Promise<Usuario>;
   obtenerUsuario(id: number): Promise<Usuario>;               // PII: admin o titular
   editarUsuario(id: number, data: Partial<Pick<Usuario, 'nombre' | 'organizacion_id'>>): Promise<Usuario>;

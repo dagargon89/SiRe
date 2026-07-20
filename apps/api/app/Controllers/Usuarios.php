@@ -34,7 +34,16 @@ class Usuarios extends ApiController
         ];
     }
 
-    /** GET /usuarios?page=&estado= — administrador. */
+    /**
+     * GET /usuarios?page=&estado= — administrador.
+     *
+     * `estado`:
+     *  - 'desactivado' (virtual): solo usuarios aprobados que fueron desactivados
+     *    (is_active=0 AND estado='aprobado').
+     *  - 'pendiente'|'aprobado'|'rechazado': filtra por ese estado; en la vista
+     *    normal se ocultan los desactivados.
+     *  - vacío/otro: vista principal (todos MENOS los desactivados).
+     */
     public function index(): ResponseInterface
     {
         $model   = $this->model();
@@ -42,8 +51,14 @@ class Usuarios extends ApiController
         $page    = max(1, (int) ($this->request->getGet('page') ?? 1));
 
         $estado = $this->request->getGet('estado');
-        if (in_array($estado, ['pendiente', 'aprobado', 'rechazado'], true)) {
-            $model->where('estado', $estado);
+        if ($estado === 'desactivado') {
+            $model->where('is_active', 0)->where('estado', 'aprobado');
+        } else {
+            // Vista principal: ocultar desactivados = NOT (is_active=0 AND estado='aprobado').
+            $model->groupStart()->where('is_active', 1)->orWhere('estado !=', 'aprobado')->groupEnd();
+            if (in_array($estado, ['pendiente', 'aprobado', 'rechazado'], true)) {
+                $model->where('estado', $estado);
+            }
         }
 
         $rows  = $model->orderBy('nombre', 'ASC')->paginate($perPage, 'default', $page);

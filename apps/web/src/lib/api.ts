@@ -4,6 +4,8 @@
 
 export type Rol = 'administrador' | 'custodio' | 'auditor'
 export type EstadoUsuario = 'pendiente' | 'aprobado' | 'rechazado'
+/** Filtro de la lista de usuarios: estados reales + 'desactivado' (virtual: aprobados con is_active=0). */
+export type FiltroUsuarios = EstadoUsuario | 'desactivado'
 export type CondicionActivo = 'excelente' | 'bueno' | 'regular' | 'malo' | 'baja'
 export type EstadoActivo = 'disponible' | 'asignado' | 'prestado' | 'mantenimiento' | 'baja'
 export type EstadoPrestamo = 'activo' | 'vencido' | 'devuelto'
@@ -89,7 +91,7 @@ export interface ApiClient {
   editarCategoria(id: number, data: { nombre: string; clave: string }): Promise<Categoria>
   cambiarEstadoCategoria(id: number, activa: boolean): Promise<Categoria>
   // usuarios
-  listarUsuarios(page?: number, estado?: EstadoUsuario): Promise<Paginado<Usuario>>
+  listarUsuarios(page?: number, estado?: FiltroUsuarios): Promise<Paginado<Usuario>>
   crearUsuario(data: { nombre: string; email: string; rol: Rol; organizacion_id: number }): Promise<Usuario>
   obtenerUsuario(id: number): Promise<Usuario>               // PII: admin o titular
   editarUsuario(id: number, data: Partial<Pick<Usuario, 'nombre' | 'organizacion_id'>>): Promise<Usuario>

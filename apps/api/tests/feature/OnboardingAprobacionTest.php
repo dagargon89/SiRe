@@ -76,6 +76,30 @@ final class OnboardingAprobacionTest extends CIUnitTestCase
         }
     }
 
+    public function testDesactivadosSeOcultanDelDefaultYTienenSuFiltro(): void
+    {
+        $this->db->table('usuarios')->insertBatch([
+            ['firebase_uid' => 'act', 'organizacion_id' => $this->orgId, 'nombre' => 'Activo',
+                'email' => 'act@x.test', 'rol' => 'custodio', 'is_active' => 1, 'estado' => 'aprobado'],
+            ['firebase_uid' => 'des', 'organizacion_id' => $this->orgId, 'nombre' => 'Desactivado',
+                'email' => 'des@x.test', 'rol' => 'custodio', 'is_active' => 0, 'estado' => 'aprobado'],
+            ['firebase_uid' => 'rec', 'organizacion_id' => $this->orgId, 'nombre' => 'Rechazado',
+                'email' => 'rec@x.test', 'rol' => 'custodio', 'is_active' => 0, 'estado' => 'rechazado'],
+        ]);
+
+        // Vista principal (sin filtro): oculta al desactivado; conserva activo y rechazado.
+        $r      = $this->withHeaders($this->admin())->get('api/v1/usuarios');
+        $emails = array_column(json_decode($r->getJSON(), true)['data'], 'email');
+        $this->assertContains('act@x.test', $emails);
+        $this->assertContains('rec@x.test', $emails);
+        $this->assertNotContains('des@x.test', $emails);
+
+        // Filtro 'desactivado': solo aprobados con is_active=0.
+        $r2      = $this->withHeaders($this->admin())->get('api/v1/usuarios?estado=desactivado');
+        $emails2 = array_column(json_decode($r2->getJSON(), true)['data'], 'email');
+        $this->assertSame(['des@x.test'], $emails2);
+    }
+
     public function testAdminApruebaYDaAcceso(): void
     {
         $id = $this->solicitar('u1', 'u1@x.test', 'Uno');
