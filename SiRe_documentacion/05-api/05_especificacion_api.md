@@ -63,6 +63,7 @@
 | GET | `/api/v1/activos` | todos | Lista con búsqueda (`?q=`) y filtros (`categoria_id`, `estado`, `condicion`, `organizacion_id`) |
 | POST | `/api/v1/activos` | administrador | Alta (genera código físico + QR) |
 | GET | `/api/v1/activos/{id}` | todos | Ficha + historial |
+| GET | `/api/v1/activos/{id}/publico` | público (sin login) | Destino del QR: ficha reducida de solo lectura + custodio/prestatario vigente (sin historial ni datos financieros) |
 | PUT | `/api/v1/activos/{id}` | administrador | Edita |
 | POST | `/api/v1/activos/{id}/factura` | administrador | Sube copia de factura (URL firmada) |
 | GET | `/api/v1/activos/{id}/factura` | administrador · auditor | URL firmada de descarga |
@@ -153,6 +154,14 @@ export interface ActivoACargo { // equipos vigentes a cargo de un usuario (añad
   id: number; codigo: string; nombre: string;
   condicion: CondicionActivo; estado: EstadoActivo;
 }
+export interface ActivoPublico { // destino del QR, GET sin login (añadido tras Sprint 7)
+  id: number; codigo: string; nombre: string;
+  marca?: string; modelo?: string; serie?: string;
+  categoria: string | null;
+  condicion: CondicionActivo; estado: EstadoActivo;
+  custodio_actual: string | null; // solo si estado === 'asignado'
+  prestamo_vigente: { prestatario_nombre: string; devolucion_esperada: string } | null; // solo si estado === 'prestado'
+}
 export interface PrestamoDeUsuario { // préstamos vigentes del usuario como prestatario (añadido tras Sprint 6)
   id: number; activo_id: number;
   activo_codigo: string; activo_nombre: string;
@@ -213,6 +222,7 @@ export interface ApiClient {
   listarActivos(filtros?: FiltrosActivos): Promise<Paginado<Activo>>;
   crearActivo(data: Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>): Promise<Activo>;
   obtenerActivo(id: number): Promise<{ activo: Activo; historial: Movimiento[]; asignacion_vigente: Asignacion | null }>; // asignacion_vigente añadido en Sprint 3
+  obtenerActivoPublico(id: number): Promise<ActivoPublico>; // público: destino del QR, sin login (añadido tras Sprint 7)
   editarActivo(id: number, data: Partial<Activo>): Promise<Activo>;
   subirFactura(id: number, archivo: File): Promise<{ factura_url: string }>;
   urlFactura(id: number): Promise<{ url: string }>;

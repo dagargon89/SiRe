@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\ActivoModel;
+use App\Models\CategoriaModel;
 use App\Models\MovimientoModel;
 use App\Services\Activos\CrearActivoService;
 use App\Services\Activos\EtiquetaPdf;
@@ -45,7 +46,7 @@ class Activos extends ApiController
             'valor_compra'    => $a['valor_compra'] !== null ? (float) $a['valor_compra'] : null,
             'proveedor'       => $a['proveedor'],
             'factura_numero'  => $a['factura_numero'],
-            'qr_url'          => $this->frontendUrl() . '/activos/' . (int) $a['id'],
+            'qr_url'          => $this->frontendUrl() . '/activos/' . (int) $a['id'] . '/publico',
             'condicion'       => $a['condicion'],
             'estado'          => $a['estado'],
             'creado_en'       => $a['creado_en'],
@@ -205,6 +206,51 @@ class Activos extends ApiController
         });
     }
 
+    /**
+     * GET /activos/{id}/publico — sin autenticación (destino del QR). Ficha
+     * de solo lectura reducida a datos identificatorios + estado actual
+     * (custodio o prestatario vigente); sin historial ni datos financieros
+     * (valor de compra, proveedor, factura).
+     */
+    public function publico(int $id): ResponseInterface
+    {
+        $activo = $this->model()->find($id);
+        if ($activo === null) {
+            return $this->error(404, 'no_existe', 'Activo no encontrado.');
+        }
+
+        $categoria = (new CategoriaModel())->find((int) $activo['categoria_id']);
+
+        $asignacion = $this->model()->db->table('asignaciones a')
+            ->select('u.nombre AS usuario_nombre')
+            ->join('usuarios u', 'u.id = a.usuario_id')
+            ->where('a.activo_id', $id)->where('a.revocada_en', null)
+            ->get()->getRowArray();
+
+        $prestamo = $this->model()->db->table('prestamos p')
+            ->select('pt.nombre AS prestatario_nombre, p.devolucion_esperada')
+            ->join('usuarios pt', 'pt.id = p.prestatario_id')
+            ->where('p.activo_id', $id)->where('p.devuelto_en', null)
+            ->orderBy('p.id', 'DESC')->get()->getRowArray();
+
+        return $this->ok([
+            'id'               => (int) $activo['id'],
+            'codigo'           => $activo['codigo'],
+            'nombre'           => $activo['nombre'],
+            'marca'            => $activo['marca'],
+            'modelo'           => $activo['modelo'],
+            'serie'            => $activo['serie'],
+            'categoria'        => $categoria['nombre'] ?? null,
+            'condicion'        => $activo['condicion'],
+            'estado'           => $activo['estado'],
+            'custodio_actual'  => $asignacion['usuario_nombre'] ?? null,
+            'prestamo_vigente' => $prestamo === null ? null : [
+                'prestatario_nombre'  => $prestamo['prestatario_nombre'],
+                'devolucion_esperada' => $prestamo['devolucion_esperada'],
+            ],
+        ]);
+    }
+
     /** GET /activos/{id}/etiqueta — administrador. PDF con QR + código. */
     public function etiqueta(int $id): ResponseInterface
     {
@@ -213,7 +259,7 @@ class Activos extends ApiController
             return $this->error(404, 'no_existe', 'Activo no encontrado.');
         }
 
-        $deepLink = $this->frontendUrl() . '/activos/' . $id;
+        $deepLink = $this->frontendUrl() . '/activos/' . $id . '/publico';
         $qr       = (new GeneradorQr())->pngBase64($deepLink);
         $pdf      = (new EtiquetaPdf())->generar($activo, $qr);
 

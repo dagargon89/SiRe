@@ -38,6 +38,8 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     $routes->get('activos', 'Activos::index', $auth);
     $routes->post('activos', 'Activos::create', $admin);
     $routes->get('activos/(:num)', 'Activos::show/$1', $auth);
+    // Público (QR): ficha reducida de solo lectura, sin login. Solo throttle por IP.
+    $routes->get('activos/(:num)/publico', 'Activos::publico/$1', ['filter' => ['throttle']]);
     $routes->put('activos/(:num)', 'Activos::update/$1', $admin);
     $routes->patch('activos/(:num)/baja', 'Activos::baja/$1', $admin);
     $routes->patch('activos/(:num)/mantenimiento', 'Activos::mantenimiento/$1', $admin);

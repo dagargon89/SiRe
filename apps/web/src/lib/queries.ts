@@ -135,6 +135,11 @@ export function useActivo(id: number) {
   return useQuery({ queryKey: ['activo', id], queryFn: () => api.obtenerActivo(id) })
 }
 
+/** Ficha pública (sin login) para la página destino del QR. */
+export function useActivoPublico(id: number) {
+  return useQuery({ queryKey: ['activo-publico', id], queryFn: () => api.obtenerActivoPublico(id) })
+}
+
 type NuevoActivo = Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>
 
 export function useGuardarActivo() {

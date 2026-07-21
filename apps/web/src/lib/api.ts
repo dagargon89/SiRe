@@ -36,6 +36,15 @@ export interface Asignacion {
   usuario_nombre?: string | null          // enriquecido en la ficha (sprint pulido)
   asignada_en: string; revocada_en?: string | null; revocacion_motivo?: string
 }
+/** Ficha reducida y de solo lectura para el destino público del QR (GET /activos/{id}/publico, sin login). */
+export interface ActivoPublico {
+  id: number; codigo: string; nombre: string
+  marca?: string; modelo?: string; serie?: string
+  categoria: string | null
+  condicion: CondicionActivo; estado: EstadoActivo
+  custodio_actual: string | null       // solo si estado === 'asignado'
+  prestamo_vigente: { prestatario_nombre: string; devolucion_esperada: string } | null  // solo si estado === 'prestado'
+}
 /** Equipo vigente a cargo de un usuario (GET /usuarios/{id}/activos). */
 export interface ActivoACargo {
   id: number; codigo: string; nombre: string
@@ -106,6 +115,7 @@ export interface ApiClient {
   listarActivos(filtros?: FiltrosActivos): Promise<Paginado<Activo>>
   crearActivo(data: Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>): Promise<Activo>
   obtenerActivo(id: number): Promise<{ activo: Activo; historial: Movimiento[]; asignacion_vigente: Asignacion | null }>
+  obtenerActivoPublico(id: number): Promise<ActivoPublico>  // público: destino del QR, sin login
   editarActivo(id: number, data: Partial<Activo>): Promise<Activo>
   subirFactura(id: number, archivo: File): Promise<{ factura_url: string }>
   urlFactura(id: number): Promise<{ url: string }>
@@ -247,6 +257,7 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
       request('GET', `/activos${toQuery(filtros as Record<string, unknown> | undefined)}`),
     crearActivo: (data) => request('POST', '/activos', data),
     obtenerActivo: (id) => request('GET', `/activos/${id}`),
+    obtenerActivoPublico: (id) => request('GET', `/activos/${id}/publico`),
     editarActivo: (id, data) => request('PUT', `/activos/${id}`, data),
     subirFactura: (id, archivo) => {
       const fd = new FormData()
