@@ -136,8 +136,6 @@ final class Sprint5DashboardTest extends CIUnitTestCase
         $r = $this->withHeaders($this->h('a1'))->get('api/v1/reportes/inventario');
         $r->assertStatus(200);
         $this->assertStringContainsString('%PDF', (string) $r->getBody());
-        // Hoja carta horizontal: 792 × 612 pt.
-        $this->assertMatchesRegularExpression('#/MediaBox \[0 0 792\.0+ 612\.0+\]#', (string) $r->getBody());
 
         // Auditor sí; custodio no.
         $this->withHeaders($this->h('au1'))->get('api/v1/reportes/inventario')->assertStatus(200);
@@ -151,6 +149,18 @@ final class Sprint5DashboardTest extends CIUnitTestCase
         $r = $this->withHeaders($this->h('au1'))->get('api/v1/reportes/movimientos?desde=2026-01-01&hasta=2027-01-01');
         $r->assertStatus(200);
         $this->assertStringContainsString('%PDF', (string) $r->getBody());
-        $this->assertMatchesRegularExpression('#/MediaBox \[0 0 792\.0+ 612\.0+\]#', (string) $r->getBody());
+    }
+
+    public function testReportesEnHojaHorizontal(): void
+    {
+        // Se prueba el PDF generado directamente: en el arnés de PHPUnit el body
+        // binario de la respuesta puede venir envuelto por html_errors.
+        $pdf      = new \App\Services\Reportes\ReportePdf();
+        $cartaL   = '#/MediaBox \[0 0 792\.0+ 612\.0+\]#'; // carta horizontal (pt)
+        $activos  = [['codigo' => 'CMP-AVZ-001', 'nombre' => 'Laptop', 'estado' => 'asignado', 'condicion' => 'bueno', 'custodio' => 'Ana', 'prestatario' => null]];
+        $movs     = [['creado_en' => '2026-10-09 10:00:00', 'codigo' => 'CMP-AVZ-001', 'tipo' => 'alta', 'notas' => null, 'realizado_por' => 'Ana']];
+
+        $this->assertMatchesRegularExpression($cartaL, $pdf->inventario($activos));
+        $this->assertMatchesRegularExpression($cartaL, $pdf->movimientos($movs, '2026-10-01', '2026-10-31'));
     }
 }
