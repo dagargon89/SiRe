@@ -42,8 +42,7 @@ final class EvidenciasService
             throw new ServiceException('limite_evidencias', 'El activo ya tiene el máximo de ' . self::MAX_POR_ACTIVO . ' fotos.', 422);
         }
 
-        $descripcion = trim((string) $descripcion);
-        $descripcion = $descripcion === '' ? null : mb_substr($descripcion, 0, 255);
+        $descripcion = $this->normalizarDescripcion($descripcion);
 
         $foto    = $this->procesador->procesar($rutaTemporal);
         $archivo = $this->almacen->guardar($foto['imagen'], $foto['miniatura']);
@@ -81,33 +80,53 @@ final class EvidenciasService
         return $this->evidencias->find($id);
     }
 
-    /** Cambia el tipo de una foto y lo registra en la bitácora (sin cambio = no-op). */
-    public function cambiarTipo(int $evidenciaId, string $tipo, int $actorId): array
+    /**
+     * Edita el tipo y/o la descripción de una foto. Solo se aplican las claves
+     * presentes en $cambios; lo que realmente cambie queda en la bitácora en
+     * un solo movimiento (sin cambios = no-op).
+     */
+    public function actualizar(int $evidenciaId, array $cambios, int $actorId): array
     {
-        if (! array_key_exists($tipo, self::TIPOS)) {
-            throw new ServiceException('tipo_invalido', 'El tipo de foto debe ser equipo, accesorio o daño.', 422);
-        }
         $evidencia = $this->evidencias->find($evidenciaId);
         if ($evidencia === null) {
             throw new ServiceException('no_existe', 'Foto no encontrada.', 404);
         }
-        if ($evidencia['tipo'] === $tipo) {
+
+        $datos = [];
+        $notas = [];
+        if (array_key_exists('tipo', $cambios)) {
+            $tipo = (string) $cambios['tipo'];
+            if (! array_key_exists($tipo, self::TIPOS)) {
+                throw new ServiceException('tipo_invalido', 'El tipo de foto debe ser equipo, accesorio o daño.', 422);
+            }
+            if ($tipo !== $evidencia['tipo']) {
+                $datos['tipo'] = $tipo;
+                $notas[]       = 'tipo ' . (self::TIPOS[$evidencia['tipo']] ?? $evidencia['tipo']) . ' → ' . self::TIPOS[$tipo];
+            }
+        }
+        if (array_key_exists('descripcion', $cambios)) {
+            $descripcion = $this->normalizarDescripcion($cambios['descripcion']);
+            if ($descripcion !== $evidencia['descripcion']) {
+                $datos['descripcion'] = $descripcion;
+                $notas[]              = 'descripción "' . ($evidencia['descripcion'] ?? '') . '" → "' . ($descripcion ?? '') . '"';
+            }
+        }
+        if ($datos === []) {
             return $evidencia;
         }
 
         $db = $this->evidencias->db;
         $db->transBegin();
         try {
-            $this->evidencias->update($evidenciaId, ['tipo' => $tipo]);
+            $this->evidencias->update($evidenciaId, $datos);
             $this->movimientos->registrar([
                 'activo_id'     => (int) $evidencia['activo_id'],
                 'tipo'          => 'evidencia',
                 'realizado_por' => $actorId,
-                'notas'         => mb_substr('Tipo de foto cambiado: ' . (self::TIPOS[$evidencia['tipo']] ?? $evidencia['tipo'])
-                    . ' → ' . self::TIPOS[$tipo] . ($evidencia['descripcion'] !== null ? ' (' . $evidencia['descripcion'] . ')' : ''), 0, 500),
+                'notas'         => mb_substr('Foto editada: ' . implode('; ', $notas), 0, 500),
             ]);
             if ($db->transStatus() === false) {
-                throw new ServiceException('evidencia_fallida', 'No se pudo cambiar el tipo.', 422);
+                throw new ServiceException('evidencia_fallida', 'No se pudo editar la foto.', 422);
             }
             $db->transCommit();
         } catch (Throwable $e) {
@@ -117,6 +136,13 @@ final class EvidenciasService
         }
 
         return $this->evidencias->find($evidenciaId);
+    }
+
+    private function normalizarDescripcion(mixed $valor): ?string
+    {
+        $descripcion = trim((string) ($valor ?? ''));
+
+        return $descripcion === '' ? null : mb_substr($descripcion, 0, 255);
     }
 
     public function eliminar(int $evidenciaId, int $actorId): void

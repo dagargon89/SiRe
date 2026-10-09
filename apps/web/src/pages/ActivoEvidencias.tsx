@@ -6,7 +6,7 @@ import { Modal } from '../components/Modal'
 import { Select } from '../components/Select'
 import { useToast } from '../lib/toast'
 import { ApiError, type Evidencia, type TipoEvidencia } from '../lib/api'
-import { useCambiarTipoEvidencia, useEliminarEvidencia, useEvidencias, useImagenEvidencia, useSubirEvidencia } from '../lib/queries'
+import { useEditarEvidencia, useEliminarEvidencia, useEvidencias, useImagenEvidencia, useSubirEvidencia } from '../lib/queries'
 
 const TIPOS = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_BYTES = 10 * 1024 * 1024
@@ -34,7 +34,7 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
   const q = useEvidencias(activoId)
   const subir = useSubirEvidencia()
   const eliminar = useEliminarEvidencia()
-  const cambiarTipo = useCambiarTipoEvidencia()
+  const editar = useEditarEvidencia()
   const toast = useToast()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -44,7 +44,8 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
   const [progreso, setProgreso] = useState<string | null>(null)
   const [errores, setErrores] = useState<string[]>([])
   const [viendo, setViendo] = useState<Evidencia | null>(null)
-  const [nuevoTipo, setNuevoTipo] = useState<TipoEvidencia | null>(null) // null = no se está cambiando
+  // Edición dentro de la foto abierta: null = solo viendo.
+  const [edicion, setEdicion] = useState<null | { campo: 'tipo'; valor: TipoEvidencia } | { campo: 'descripcion'; valor: string }>(null)
 
   // Arrastrar y soltar (solo administrador). El contador evita el parpadeo de
   // dragenter/dragleave al pasar sobre los elementos hijos de la tarjeta.
@@ -99,19 +100,26 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
   }
 
   function abrir(ev: Evidencia | null) {
-    setNuevoTipo(null)
+    setEdicion(null)
     setViendo(ev)
   }
 
-  async function guardarTipo(ev: Evidencia) {
-    if (!nuevoTipo || nuevoTipo === ev.tipo) { setNuevoTipo(null); return }
+  const sinCambios = (ev: Evidencia) =>
+    edicion === null ||
+    (edicion.campo === 'tipo' ? edicion.valor === ev.tipo : edicion.valor.trim() === (ev.descripcion ?? ''))
+
+  async function guardarEdicion(ev: Evidencia) {
+    if (edicion === null || sinCambios(ev)) { setEdicion(null); return }
+    const datos = edicion.campo === 'tipo' ? { tipo: edicion.valor } : { descripcion: edicion.valor.trim() || null }
     try {
-      const actualizada = await cambiarTipo.mutateAsync({ id: ev.id, activoId, tipo: nuevoTipo })
+      const actualizada = await editar.mutateAsync({ id: ev.id, activoId, datos })
       setViendo(actualizada)
-      setNuevoTipo(null)
-      toast.exito(`Tipo cambiado a ${TIPO_OPCION[actualizada.tipo].toLowerCase()}`)
+      setEdicion(null)
+      toast.exito(edicion.campo === 'tipo'
+        ? `Tipo cambiado a ${TIPO_OPCION[actualizada.tipo].toLowerCase()}`
+        : 'Descripción actualizada')
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'No se pudo cambiar el tipo.')
+      toast.error(err instanceof ApiError ? err.message : 'No se pudo guardar el cambio.')
     }
   }
 
@@ -246,23 +254,35 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
       {viendo && (
         <Modal title={`${TIPO_OPCION[viendo.tipo] ?? 'Evidencia'}${viendo.descripcion ? ` · ${viendo.descripcion}` : ''}`} onClose={() => abrir(null)} wide>
           <ImagenEvidencia evidencia={viendo} miniatura={false} className="w-full max-h-[65vh] object-contain bg-surface-2 rounded-md" />
-          {esAdmin && nuevoTipo !== null ? (
-            <div className="flex flex-wrap items-end justify-end gap-2 mt-4">
-              <div className="w-48">
-                <Select label="Nuevo tipo" value={nuevoTipo} onChange={(v) => setNuevoTipo(v as TipoEvidencia)}
-                  disabled={cambiarTipo.isPending} options={ORDEN.map((t) => ({ value: t, label: TIPO_OPCION[t] }))} />
-              </div>
-              <Button variant="secondary" onClick={() => setNuevoTipo(null)} disabled={cambiarTipo.isPending}>Cancelar</Button>
-              <Button onClick={() => void guardarTipo(viendo)} disabled={cambiarTipo.isPending || nuevoTipo === viendo.tipo}>
-                {cambiarTipo.isPending ? 'Guardando…' : 'Guardar'}
+          {esAdmin && edicion !== null ? (
+            <form className="flex flex-wrap items-end justify-end gap-2 mt-4"
+              onSubmit={(e) => { e.preventDefault(); void guardarEdicion(viendo) }}>
+              {edicion.campo === 'tipo' ? (
+                <div className="w-48">
+                  <Select label="Nuevo tipo" value={edicion.valor} onChange={(v) => setEdicion({ campo: 'tipo', valor: v as TipoEvidencia })}
+                    disabled={editar.isPending} options={ORDEN.map((t) => ({ value: t, label: TIPO_OPCION[t] }))} />
+                </div>
+              ) : (
+                <div className="flex-1 min-w-[220px]">
+                  <Field label="Descripción" placeholder="Ej. cargador, estado al entregar…" maxLength={255} autoFocus
+                    value={edicion.valor} onChange={(e) => setEdicion({ campo: 'descripcion', valor: e.target.value })}
+                    disabled={editar.isPending} />
+                </div>
+              )}
+              <Button type="button" variant="secondary" onClick={() => setEdicion(null)} disabled={editar.isPending}>Cancelar</Button>
+              <Button type="submit" disabled={editar.isPending || sinCambios(viendo)}>
+                {editar.isPending ? 'Guardando…' : 'Guardar'}
               </Button>
-            </div>
+            </form>
           ) : (
             <div className="flex items-center justify-between gap-2 mt-4">
               <span className="text-xs text-ink-muted">{viendo.creado_en?.slice(0, 16).replace('T', ' ')}</span>
               {esAdmin && (
-                <div className="flex gap-2">
-                  <Button variant="secondary" onClick={() => setNuevoTipo(viendo.tipo)}>Cambiar tipo</Button>
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button variant="secondary" onClick={() => setEdicion({ campo: 'descripcion', valor: viendo.descripcion ?? '' })}>
+                    Editar descripción
+                  </Button>
+                  <Button variant="secondary" onClick={() => setEdicion({ campo: 'tipo', valor: viendo.tipo })}>Cambiar tipo</Button>
                   <Button variant="danger" onClick={() => void borrar(viendo)} disabled={eliminar.isPending}>Eliminar</Button>
                 </div>
               )}

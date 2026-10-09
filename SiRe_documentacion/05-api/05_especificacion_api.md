@@ -69,7 +69,7 @@
 | GET | `/api/v1/activos/{id}/evidencias` | todos (aprobados) | Lista de fotos de evidencia del activo |
 | POST | `/api/v1/activos/{id}/evidencias` | administrador | Sube una foto (multipart `foto`, `tipo` = `equipo`·`accesorio`·`dano`, `descripcion?`; JPG/PNG/WebP ≤ 10 MB; se reduce a 1600 px y se recodifica a JPEG sin metadatos; máx. 30 por activo) |
 | GET | `/api/v1/evidencias/{id}/archivo[?miniatura=1]` | todos (aprobados) | Imagen JPEG (miniatura de 400 px opcional); no se expone en la ficha pública |
-| PATCH | `/api/v1/evidencias/{id}` | administrador | Cambia el `tipo` de la foto (queda en la bitácora) |
+| PATCH | `/api/v1/evidencias/{id}` | administrador | Edita `tipo` y/o `descripcion` de la foto (vacía = sin descripción); lo que cambie queda en la bitácora |
 | DELETE | `/api/v1/evidencias/{id}` | administrador | Elimina la foto y sus archivos |
 | PATCH | `/api/v1/activos/{id}/baja` | administrador | Da de baja (motivo) |
 | PATCH | `/api/v1/activos/{id}/mantenimiento` | administrador | Entra/sale de mantenimiento |
@@ -237,7 +237,7 @@ export interface ApiClient {
   listarEvidencias(activoId: number): Promise<Evidencia[]>;
   subirEvidencia(activoId: number, foto: File, tipo: TipoEvidencia, descripcion?: string): Promise<Evidencia>;
   descargarEvidencia(id: number, miniatura?: boolean): Promise<Blob>; // JPEG
-  cambiarTipoEvidencia(id: number, tipo: TipoEvidencia): Promise<Evidencia>;
+  editarEvidencia(id: number, data: { tipo?: TipoEvidencia; descripcion?: string | null }): Promise<Evidencia>;
   eliminarEvidencia(id: number): Promise<void>;
   darDeBaja(id: number, motivo: string): Promise<Activo>;
   cambiarMantenimiento(id: number, enMantenimiento: boolean): Promise<Activo>;

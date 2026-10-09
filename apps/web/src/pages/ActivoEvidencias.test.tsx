@@ -12,7 +12,7 @@ vi.mock('../lib/queries', () => ({
   useImagenEvidencia: () => ({ data: undefined, isError: false }),
   useSubirEvidencia: () => mutar,
   useEliminarEvidencia: () => mutar,
-  useCambiarTipoEvidencia: () => mutar,
+  useEditarEvidencia: () => mutar,
 }))
 vi.mock('../lib/toast', () => ({ useToast: () => ({ exito: vi.fn(), error: vi.fn(), info: vi.fn() }) }))
 
@@ -86,6 +86,25 @@ describe('ActivoEvidencias', () => {
     expect(screen.getByRole('dialog', { name: 'Accesorio · Cargador' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Eliminar' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Cambiar tipo' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Editar descripción' })).not.toBeInTheDocument()
+  })
+
+  it('el administrador edita la descripción desde la foto abierta', async () => {
+    mockUseEvidencias.mockReturnValue({ data: [evidencia()], isLoading: false, isError: false })
+    mutar.mutateAsync.mockResolvedValue(evidencia({ descripcion: 'Cargador 65W' }))
+    render(<ActivoEvidencias activoId={7} esAdmin />)
+    await userEvent.click(screen.getByText('Cargador'))
+    await userEvent.click(screen.getByRole('button', { name: 'Editar descripción' }))
+
+    const campo = screen.getByLabelText('Descripción')
+    expect(campo).toHaveValue('Cargador')
+    expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled() // sin cambios
+
+    await userEvent.clear(campo)
+    await userEvent.type(campo, 'Cargador 65W{Enter}')
+
+    expect(mutar.mutateAsync).toHaveBeenCalledWith({ id: 1, activoId: 7, datos: { descripcion: 'Cargador 65W' } })
+    expect(screen.getByRole('dialog', { name: 'Accesorio · Cargador 65W' })).toBeInTheDocument()
   })
 
   it('el administrador cambia el tipo desde la foto abierta', async () => {
@@ -102,7 +121,7 @@ describe('ActivoEvidencias', () => {
     await userEvent.click(screen.getByRole('option', { name: 'Daño' }))
     await userEvent.click(guardar)
 
-    expect(mutar.mutateAsync).toHaveBeenCalledWith({ id: 1, activoId: 7, tipo: 'dano' })
+    expect(mutar.mutateAsync).toHaveBeenCalledWith({ id: 1, activoId: 7, datos: { tipo: 'dano' } })
     expect(screen.getByRole('dialog', { name: 'Daño · Cargador' })).toBeInTheDocument()
   })
 })

@@ -213,7 +213,7 @@ final class EvidenciasTest extends CIUnitTestCase
         $r = $this->withBodyFormat('json')->withHeaders($h)->patch('api/v1/evidencias/' . $e['id'], ['tipo' => 'dano']);
         $r->assertStatus(200);
         $this->assertSame('dano', json_decode($r->getJSON(), true)['tipo']);
-        $this->seeInDatabase('movimientos', ['tipo' => 'evidencia', 'notas' => 'Tipo de foto cambiado: accesorio → daño (Cargador)']);
+        $this->seeInDatabase('movimientos', ['tipo' => 'evidencia', 'notas' => 'Foto editada: tipo accesorio → daño']);
 
         // Mismo tipo: no-op, sin nuevo movimiento.
         $antes = $this->db->table('movimientos')->countAllResults();
@@ -221,6 +221,32 @@ final class EvidenciasTest extends CIUnitTestCase
         $this->assertSame($antes, $this->db->table('movimientos')->countAllResults());
 
         $this->withBodyFormat('json')->withHeaders($h)->patch('api/v1/evidencias/' . $e['id'], ['tipo' => 'otro'])->assertStatus(422);
+    }
+
+    public function testAdminEditaDescripcion(): void
+    {
+        $e = $this->subir();
+        $h = ['Authorization' => 'Bearer tok-a1'];
+
+        $r = $this->withBodyFormat('json')->withHeaders($h)->patch('api/v1/evidencias/' . $e['id'], ['descripcion' => '  Cargador original 65W ']);
+        $r->assertStatus(200);
+        $this->assertSame('Cargador original 65W', json_decode($r->getJSON(), true)['descripcion']);
+        $this->seeInDatabase('movimientos', ['tipo' => 'evidencia', 'notas' => 'Foto editada: descripción "Cargador" → "Cargador original 65W"']);
+
+        // Vacía = sin descripción; el tipo no se toca.
+        $this->withBodyFormat('json')->withHeaders($h)->patch('api/v1/evidencias/' . $e['id'], ['descripcion' => ''])->assertStatus(200);
+        $this->seeInDatabase('evidencias', ['id' => $e['id'], 'descripcion' => null, 'tipo' => 'accesorio']);
+    }
+
+    public function testEditarTipoYDescripcionJuntosUnSoloMovimiento(): void
+    {
+        $e     = $this->subir();
+        $antes = $this->db->table('movimientos')->countAllResults();
+        $this->withBodyFormat('json')->withHeaders(['Authorization' => 'Bearer tok-a1'])
+            ->patch('api/v1/evidencias/' . $e['id'], ['tipo' => 'dano', 'descripcion' => 'Cable pelado'])->assertStatus(200);
+
+        $this->assertSame($antes + 1, $this->db->table('movimientos')->countAllResults());
+        $this->seeInDatabase('movimientos', ['notas' => 'Foto editada: tipo accesorio → daño; descripción "Cargador" → "Cable pelado"']);
     }
 
     public function testSoloAdminCambiaTipo(): void

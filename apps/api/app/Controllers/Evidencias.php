@@ -97,11 +97,13 @@ class Evidencias extends ApiController
             ->setBody((string) file_get_contents($ruta));
     }
 
-    /** PATCH /evidencias/{id} — administrador. body: {tipo} */
+    /** PATCH /evidencias/{id} — administrador. body: {tipo?, descripcion?} */
     public function update(int $id): ResponseInterface
     {
+        $cambios = array_intersect_key($this->body(), array_flip(['tipo', 'descripcion']));
+
         try {
-            $evidencia = $this->service()->cambiarTipo($id, (string) ($this->body()['tipo'] ?? ''), (int) $this->actor()['id']);
+            $evidencia = $this->service()->actualizar($id, $cambios, (int) $this->actor()['id']);
         } catch (ServiceException $e) {
             return $this->fromException($e);
         }

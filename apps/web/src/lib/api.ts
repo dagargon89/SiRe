@@ -129,7 +129,7 @@ export interface ApiClient {
   listarEvidencias(activoId: number): Promise<Evidencia[]>
   subirEvidencia(activoId: number, foto: File, tipo: TipoEvidencia, descripcion?: string): Promise<Evidencia>
   descargarEvidencia(id: number, miniatura?: boolean): Promise<Blob> // JPEG
-  cambiarTipoEvidencia(id: number, tipo: TipoEvidencia): Promise<Evidencia>
+  editarEvidencia(id: number, data: { tipo?: TipoEvidencia; descripcion?: string | null }): Promise<Evidencia>
   eliminarEvidencia(id: number): Promise<void>
   darDeBaja(id: number, motivo: string): Promise<Activo>
   cambiarMantenimiento(id: number, enMantenimiento: boolean): Promise<Activo>
@@ -281,7 +281,7 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
     },
     descargarEvidencia: (id, miniatura) =>
       request('GET', `/evidencias/${id}/archivo${miniatura ? '?miniatura=1' : ''}`, undefined, 'blob'),
-    cambiarTipoEvidencia: (id, tipo) => request('PATCH', `/evidencias/${id}`, { tipo }),
+    editarEvidencia: (id, data) => request('PATCH', `/evidencias/${id}`, data),
     eliminarEvidencia: (id) => request('DELETE', `/evidencias/${id}`, undefined, 'void'),
     darDeBaja: (id, motivo) => request('PATCH', `/activos/${id}/baja`, { motivo }),
     cambiarMantenimiento: (id, enMantenimiento) =>
