@@ -50,6 +50,7 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     $routes->post('activos/(:num)/evidencias', 'Evidencias::create/$1', $admin);
     // Las imágenes llevan su propio cubo de rate limit: una galería pide varias a la vez.
     $routes->get('evidencias/(:num)/archivo', 'Evidencias::archivo/$1', ['filter' => ['auth', 'aprobado', 'throttle:600,60,img']]);
+    $routes->patch('evidencias/(:num)', 'Evidencias::update/$1', $admin);
     $routes->delete('evidencias/(:num)', 'Evidencias::delete/$1', $admin);
 
     // Usuarios

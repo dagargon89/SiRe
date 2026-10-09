@@ -81,6 +81,44 @@ final class EvidenciasService
         return $this->evidencias->find($id);
     }
 
+    /** Cambia el tipo de una foto y lo registra en la bitácora (sin cambio = no-op). */
+    public function cambiarTipo(int $evidenciaId, string $tipo, int $actorId): array
+    {
+        if (! array_key_exists($tipo, self::TIPOS)) {
+            throw new ServiceException('tipo_invalido', 'El tipo de foto debe ser equipo, accesorio o daño.', 422);
+        }
+        $evidencia = $this->evidencias->find($evidenciaId);
+        if ($evidencia === null) {
+            throw new ServiceException('no_existe', 'Foto no encontrada.', 404);
+        }
+        if ($evidencia['tipo'] === $tipo) {
+            return $evidencia;
+        }
+
+        $db = $this->evidencias->db;
+        $db->transBegin();
+        try {
+            $this->evidencias->update($evidenciaId, ['tipo' => $tipo]);
+            $this->movimientos->registrar([
+                'activo_id'     => (int) $evidencia['activo_id'],
+                'tipo'          => 'evidencia',
+                'realizado_por' => $actorId,
+                'notas'         => mb_substr('Tipo de foto cambiado: ' . (self::TIPOS[$evidencia['tipo']] ?? $evidencia['tipo'])
+                    . ' → ' . self::TIPOS[$tipo] . ($evidencia['descripcion'] !== null ? ' (' . $evidencia['descripcion'] . ')' : ''), 0, 500),
+            ]);
+            if ($db->transStatus() === false) {
+                throw new ServiceException('evidencia_fallida', 'No se pudo cambiar el tipo.', 422);
+            }
+            $db->transCommit();
+        } catch (Throwable $e) {
+            $db->transRollback();
+
+            throw $e;
+        }
+
+        return $this->evidencias->find($evidenciaId);
+    }
+
     public function eliminar(int $evidenciaId, int $actorId): void
     {
         $evidencia = $this->evidencias->find($evidenciaId);

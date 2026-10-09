@@ -97,6 +97,18 @@ class Evidencias extends ApiController
             ->setBody((string) file_get_contents($ruta));
     }
 
+    /** PATCH /evidencias/{id} — administrador. body: {tipo} */
+    public function update(int $id): ResponseInterface
+    {
+        try {
+            $evidencia = $this->service()->cambiarTipo($id, (string) ($this->body()['tipo'] ?? ''), (int) $this->actor()['id']);
+        } catch (ServiceException $e) {
+            return $this->fromException($e);
+        }
+
+        return $this->ok($this->presentar($evidencia));
+    }
+
     /** DELETE /evidencias/{id} — administrador. */
     public function delete(int $id): ResponseInterface
     {

@@ -12,6 +12,7 @@ vi.mock('../lib/queries', () => ({
   useImagenEvidencia: () => ({ data: undefined, isError: false }),
   useSubirEvidencia: () => mutar,
   useEliminarEvidencia: () => mutar,
+  useCambiarTipoEvidencia: () => mutar,
 }))
 vi.mock('../lib/toast', () => ({ useToast: () => ({ exito: vi.fn(), error: vi.fn(), info: vi.fn() }) }))
 
@@ -84,5 +85,24 @@ describe('ActivoEvidencias', () => {
     await userEvent.click(screen.getByText('Cargador'))
     expect(screen.getByRole('dialog', { name: 'Accesorio · Cargador' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Eliminar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cambiar tipo' })).not.toBeInTheDocument()
+  })
+
+  it('el administrador cambia el tipo desde la foto abierta', async () => {
+    mockUseEvidencias.mockReturnValue({ data: [evidencia()], isLoading: false, isError: false })
+    mutar.mutateAsync.mockResolvedValue(evidencia({ tipo: 'dano' }))
+    render(<ActivoEvidencias activoId={7} esAdmin />)
+    await userEvent.click(screen.getByText('Cargador'))
+    await userEvent.click(screen.getByRole('button', { name: 'Cambiar tipo' }))
+
+    const guardar = screen.getByRole('button', { name: 'Guardar' })
+    expect(guardar).toBeDisabled() // mismo tipo que el actual
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Nuevo tipo' }))
+    await userEvent.click(screen.getByRole('option', { name: 'Daño' }))
+    await userEvent.click(guardar)
+
+    expect(mutar.mutateAsync).toHaveBeenCalledWith({ id: 1, activoId: 7, tipo: 'dano' })
+    expect(screen.getByRole('dialog', { name: 'Daño · Cargador' })).toBeInTheDocument()
   })
 })

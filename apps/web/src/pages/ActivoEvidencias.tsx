@@ -6,7 +6,7 @@ import { Modal } from '../components/Modal'
 import { Select } from '../components/Select'
 import { useToast } from '../lib/toast'
 import { ApiError, type Evidencia, type TipoEvidencia } from '../lib/api'
-import { useEliminarEvidencia, useEvidencias, useImagenEvidencia, useSubirEvidencia } from '../lib/queries'
+import { useCambiarTipoEvidencia, useEliminarEvidencia, useEvidencias, useImagenEvidencia, useSubirEvidencia } from '../lib/queries'
 
 const TIPOS = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_BYTES = 10 * 1024 * 1024
@@ -34,6 +34,7 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
   const q = useEvidencias(activoId)
   const subir = useSubirEvidencia()
   const eliminar = useEliminarEvidencia()
+  const cambiarTipo = useCambiarTipoEvidencia()
   const toast = useToast()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -43,6 +44,7 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
   const [progreso, setProgreso] = useState<string | null>(null)
   const [errores, setErrores] = useState<string[]>([])
   const [viendo, setViendo] = useState<Evidencia | null>(null)
+  const [nuevoTipo, setNuevoTipo] = useState<TipoEvidencia | null>(null) // null = no se está cambiando
 
   // Arrastrar y soltar (solo administrador). El contador evita el parpadeo de
   // dragenter/dragleave al pasar sobre los elementos hijos de la tarjeta.
@@ -96,12 +98,29 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
     else setErrores(fallos)
   }
 
+  function abrir(ev: Evidencia | null) {
+    setNuevoTipo(null)
+    setViendo(ev)
+  }
+
+  async function guardarTipo(ev: Evidencia) {
+    if (!nuevoTipo || nuevoTipo === ev.tipo) { setNuevoTipo(null); return }
+    try {
+      const actualizada = await cambiarTipo.mutateAsync({ id: ev.id, activoId, tipo: nuevoTipo })
+      setViendo(actualizada)
+      setNuevoTipo(null)
+      toast.exito(`Tipo cambiado a ${TIPO_OPCION[actualizada.tipo].toLowerCase()}`)
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'No se pudo cambiar el tipo.')
+    }
+  }
+
   async function borrar(ev: Evidencia) {
     if (!window.confirm('¿Eliminar esta foto? Quedará registrado en el historial.')) return
     try {
       await eliminar.mutateAsync({ id: ev.id, activoId })
       toast.exito('Foto eliminada')
-      setViendo(null)
+      abrir(null)
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'No se pudo eliminar la foto.')
     }
@@ -186,7 +205,7 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
             <ul className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {grupo.map((ev) => (
                 <li key={ev.id}>
-                  <button type="button" onClick={() => setViendo(ev)}
+                  <button type="button" onClick={() => abrir(ev)}
                     className="block w-full text-left rounded-md overflow-hidden border border-border hover:border-accent">
                     <ImagenEvidencia evidencia={ev} miniatura className="w-full aspect-square object-cover" />
                     {ev.descripcion && <span className="block px-2 py-1 text-xs text-ink truncate">{ev.descripcion}</span>}
@@ -225,14 +244,30 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
       )}
 
       {viendo && (
-        <Modal title={`${TIPO_OPCION[viendo.tipo] ?? 'Evidencia'}${viendo.descripcion ? ` · ${viendo.descripcion}` : ''}`} onClose={() => setViendo(null)} wide>
+        <Modal title={`${TIPO_OPCION[viendo.tipo] ?? 'Evidencia'}${viendo.descripcion ? ` · ${viendo.descripcion}` : ''}`} onClose={() => abrir(null)} wide>
           <ImagenEvidencia evidencia={viendo} miniatura={false} className="w-full max-h-[65vh] object-contain bg-surface-2 rounded-md" />
-          <div className="flex items-center justify-between gap-2 mt-4">
-            <span className="text-xs text-ink-muted">{viendo.creado_en?.slice(0, 16).replace('T', ' ')}</span>
-            {esAdmin && (
-              <Button variant="danger" onClick={() => void borrar(viendo)} disabled={eliminar.isPending}>Eliminar</Button>
-            )}
-          </div>
+          {esAdmin && nuevoTipo !== null ? (
+            <div className="flex flex-wrap items-end justify-end gap-2 mt-4">
+              <div className="w-48">
+                <Select label="Nuevo tipo" value={nuevoTipo} onChange={(v) => setNuevoTipo(v as TipoEvidencia)}
+                  disabled={cambiarTipo.isPending} options={ORDEN.map((t) => ({ value: t, label: TIPO_OPCION[t] }))} />
+              </div>
+              <Button variant="secondary" onClick={() => setNuevoTipo(null)} disabled={cambiarTipo.isPending}>Cancelar</Button>
+              <Button onClick={() => void guardarTipo(viendo)} disabled={cambiarTipo.isPending || nuevoTipo === viendo.tipo}>
+                {cambiarTipo.isPending ? 'Guardando…' : 'Guardar'}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-2 mt-4">
+              <span className="text-xs text-ink-muted">{viendo.creado_en?.slice(0, 16).replace('T', ' ')}</span>
+              {esAdmin && (
+                <div className="flex gap-2">
+                  <Button variant="secondary" onClick={() => setNuevoTipo(viendo.tipo)}>Cambiar tipo</Button>
+                  <Button variant="danger" onClick={() => void borrar(viendo)} disabled={eliminar.isPending}>Eliminar</Button>
+                </div>
+              )}
+            </div>
+          )}
         </Modal>
       )}
     </Card>

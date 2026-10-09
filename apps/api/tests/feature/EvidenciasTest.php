@@ -205,6 +205,32 @@ final class EvidenciasTest extends CIUnitTestCase
             ->assertStatus(422);
     }
 
+    public function testAdminCambiaTipoYQuedaEnBitacora(): void
+    {
+        $e = $this->subir();
+        $h = ['Authorization' => 'Bearer tok-a1'];
+
+        $r = $this->withBodyFormat('json')->withHeaders($h)->patch('api/v1/evidencias/' . $e['id'], ['tipo' => 'dano']);
+        $r->assertStatus(200);
+        $this->assertSame('dano', json_decode($r->getJSON(), true)['tipo']);
+        $this->seeInDatabase('movimientos', ['tipo' => 'evidencia', 'notas' => 'Tipo de foto cambiado: accesorio → daño (Cargador)']);
+
+        // Mismo tipo: no-op, sin nuevo movimiento.
+        $antes = $this->db->table('movimientos')->countAllResults();
+        $this->withBodyFormat('json')->withHeaders($h)->patch('api/v1/evidencias/' . $e['id'], ['tipo' => 'dano'])->assertStatus(200);
+        $this->assertSame($antes, $this->db->table('movimientos')->countAllResults());
+
+        $this->withBodyFormat('json')->withHeaders($h)->patch('api/v1/evidencias/' . $e['id'], ['tipo' => 'otro'])->assertStatus(422);
+    }
+
+    public function testSoloAdminCambiaTipo(): void
+    {
+        $e = $this->subir();
+        $c = $this->actuarComo('custodio', 'c1');
+        $this->withBodyFormat('json')->withHeaders($c)->patch('api/v1/evidencias/' . $e['id'], ['tipo' => 'dano'])->assertStatus(403);
+        $this->seeInDatabase('evidencias', ['id' => $e['id'], 'tipo' => 'accesorio']);
+    }
+
     public function testEliminarBorraArchivosYRegistraMovimiento(): void
     {
         $e    = $this->subir();

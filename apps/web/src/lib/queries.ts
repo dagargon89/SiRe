@@ -203,6 +203,17 @@ export function useSubirEvidencia() {
   })
 }
 
+export function useCambiarTipoEvidencia() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: number; activoId: number; tipo: TipoEvidencia }) => api.cambiarTipoEvidencia(v.id, v.tipo),
+    onSuccess: (_r, v) => {
+      qc.invalidateQueries({ queryKey: ['evidencias', v.activoId] })
+      qc.invalidateQueries({ queryKey: ['activo', v.activoId] })
+    },
+  })
+}
+
 export function useEliminarEvidencia() {
   const qc = useQueryClient()
   return useMutation({
