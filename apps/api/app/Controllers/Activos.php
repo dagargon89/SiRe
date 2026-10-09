@@ -8,10 +8,10 @@ use App\Models\ActivoModel;
 use App\Models\CategoriaModel;
 use App\Models\MovimientoModel;
 use App\Services\Activos\CrearActivoService;
+use App\Services\Activos\EnlaceFactura;
 use App\Services\Activos\EtiquetaPdf;
 use App\Services\Activos\GeneradorCodigo;
 use App\Services\Activos\GeneradorQr;
-use App\Services\Activos\GuardarFacturaService;
 use App\Services\ServiceException;
 use CodeIgniter\HTTP\ResponseInterface;
 use Throwable;
@@ -28,9 +28,14 @@ class Activos extends ApiController
         return rtrim((string) (env('app.frontendUrl') ?? 'http://localhost:5173'), '/');
     }
 
-    /** Proyecta al contrato Activo (tipos + qr_url derivado del id). */
+    /**
+     * Proyecta al contrato Activo (tipos + qr_url derivado del id). El enlace
+     * de la factura solo se expone a administrador y auditor.
+     */
     private function presentar(array $a): array
     {
+        $veFactura = in_array($this->actor()['rol'] ?? null, ['administrador', 'auditor'], true);
+
         return [
             'id'              => (int) $a['id'],
             'codigo'          => $a['codigo'],
@@ -46,6 +51,7 @@ class Activos extends ApiController
             'valor_compra'    => $a['valor_compra'] !== null ? (float) $a['valor_compra'] : null,
             'proveedor'       => $a['proveedor'],
             'factura_numero'  => $a['factura_numero'],
+            'factura_enlace'  => $veFactura ? ($a['factura_enlace'] ?? null) : null,
             'qr_url'          => $this->frontendUrl() . '/activos/' . (int) $a['id'] . '/publico',
             'condicion'       => $a['condicion'],
             'estado'          => $a['estado'],
@@ -149,14 +155,20 @@ class Activos extends ApiController
 
         $data    = $this->body();
         $editable = ['nombre', 'descripcion', 'observaciones', 'marca', 'modelo', 'serie', 'fecha_compra',
-            'valor_compra', 'proveedor', 'factura_numero', 'condicion'];
+            'valor_compra', 'proveedor', 'factura_numero', 'factura_enlace', 'condicion'];
         $payload = ['actualizado_por' => (int) $this->actor()['id']];
-        foreach ($editable as $campo) {
-            if (array_key_exists($campo, $data)) {
-                $payload[$campo] = $campo === 'observaciones'
-                    ? \App\Services\Html\SanitizadorHtml::limpiar($data[$campo])
-                    : $data[$campo];
+        try {
+            foreach ($editable as $campo) {
+                if (array_key_exists($campo, $data)) {
+                    $payload[$campo] = match ($campo) {
+                        'observaciones'  => \App\Services\Html\SanitizadorHtml::limpiar($data[$campo]),
+                        'factura_enlace' => EnlaceFactura::normalizar($data[$campo]),
+                        default          => $data[$campo],
+                    };
+                }
             }
+        } catch (ServiceException $e) {
+            return $this->fromException($e);
         }
 
         if (! $model->update($id, $payload)) {
@@ -267,61 +279,6 @@ class Activos extends ApiController
             ->setContentType('application/pdf')
             ->setHeader('Content-Disposition', 'inline; filename="etiqueta-' . $activo['codigo'] . '.pdf"')
             ->setBody($pdf);
-    }
-
-    /** POST /activos/{id}/factura — administrador. Sube copia y devuelve URL firmada. */
-    public function subirFactura(int $id): ResponseInterface
-    {
-        $model  = $this->model();
-        $activo = $model->find($id);
-        if ($activo === null) {
-            return $this->error(404, 'no_existe', 'Activo no encontrado.');
-        }
-
-        $file = $this->request->getFile('archivo');
-        if ($file === null || ! $file->isValid()) {
-            return $this->error(422, 'archivo_invalido', 'Archivo no válido.');
-        }
-
-        $mime       = $file->getMimeType();
-        $permitidos = ['application/pdf', 'image/jpeg', 'image/png'];
-        if (! in_array($mime, $permitidos, true)) {
-            return $this->error(422, 'tipo_no_permitido', 'Solo se admite PDF, JPG o PNG.');
-        }
-        if ($file->getSize() > 10 * 1024 * 1024) {
-            return $this->error(422, 'archivo_grande', 'El archivo supera 10 MB.');
-        }
-
-        $ext     = $file->getExtension() ?: 'bin';
-        $service = new GuardarFacturaService($model, service('archivoStorage'));
-
-        try {
-            $url = $service->execute(
-                $id,
-                (string) file_get_contents($file->getTempName()),
-                $mime,
-                $ext,
-                (int) $this->actor()['id'],
-            );
-        } catch (ServiceException $e) {
-            return $this->fromException($e);
-        }
-
-        return $this->ok(['factura_url' => $url]);
-    }
-
-    /** GET /activos/{id}/factura — administrador o auditor. URL firmada. */
-    public function urlFactura(int $id): ResponseInterface
-    {
-        $activo = $this->model()->find($id);
-        if ($activo === null) {
-            return $this->error(404, 'no_existe', 'Activo no encontrado.');
-        }
-        if (empty($activo['factura_archivo_ref'])) {
-            return $this->error(404, 'sin_factura', 'Este activo no tiene factura registrada.');
-        }
-
-        return $this->ok(['url' => service('archivoStorage')->urlFirmada($activo['factura_archivo_ref'])]);
     }
 
     /** Envuelve un cambio de estado atómico + movimiento. */

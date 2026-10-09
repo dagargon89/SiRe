@@ -44,8 +44,6 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     $routes->patch('activos/(:num)/baja', 'Activos::baja/$1', $admin);
     $routes->patch('activos/(:num)/mantenimiento', 'Activos::mantenimiento/$1', $admin);
     $routes->get('activos/(:num)/etiqueta', 'Activos::etiqueta/$1', $admin);
-    $routes->post('activos/(:num)/factura', 'Activos::subirFactura/$1', $admin);
-    $routes->get('activos/(:num)/factura', 'Activos::urlFactura/$1', ['filter' => ['auth', 'aprobado', 'role:administrador,auditor', 'throttle']]);
 
     // Usuarios
     $routes->get('usuarios', 'Usuarios::index', $admin);

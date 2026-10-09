@@ -65,8 +65,6 @@
 | GET | `/api/v1/activos/{id}` | todos | Ficha + historial |
 | GET | `/api/v1/activos/{id}/publico` | público (sin login) | Destino del QR: ficha reducida de solo lectura + custodio/prestatario vigente (sin historial ni datos financieros) |
 | PUT | `/api/v1/activos/{id}` | administrador | Edita |
-| POST | `/api/v1/activos/{id}/factura` | administrador | Sube copia de factura (URL firmada) |
-| GET | `/api/v1/activos/{id}/factura` | administrador · auditor | URL firmada de descarga |
 | GET | `/api/v1/activos/{id}/etiqueta` | administrador | PDF/PNG imprimible (código + QR) |
 | PATCH | `/api/v1/activos/{id}/baja` | administrador | Da de baja (motivo) |
 | PATCH | `/api/v1/activos/{id}/mantenimiento` | administrador | Entra/sale de mantenimiento |
@@ -142,7 +140,8 @@ export interface Activo {
   categoria_id: number; organizacion_id: number;
   marca?: string; modelo?: string; serie?: string;
   fecha_compra?: string; valor_compra?: number; proveedor?: string; factura_numero?: string;
-  factura_url?: string; qr_url?: string;
+  factura_enlace?: string | null;        // enlace de Google Drive; solo lo reciben administrador y auditor
+  qr_url?: string;
   condicion: CondicionActivo; estado: EstadoActivo; creado_en: string;
 }
 export interface Asignacion {
@@ -220,12 +219,10 @@ export interface ApiClient {
   prestamosDeUsuario(id: number): Promise<PrestamoDeUsuario[]>; // préstamos vigentes; admin o titular (añadido tras Sprint 6)
   // activos
   listarActivos(filtros?: FiltrosActivos): Promise<Paginado<Activo>>;
-  crearActivo(data: Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>): Promise<Activo>;
+  crearActivo(data: Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'creado_en'>): Promise<Activo>;
   obtenerActivo(id: number): Promise<{ activo: Activo; historial: Movimiento[]; asignacion_vigente: Asignacion | null }>; // asignacion_vigente añadido en Sprint 3
   obtenerActivoPublico(id: number): Promise<ActivoPublico>; // público: destino del QR, sin login (añadido tras Sprint 7)
   editarActivo(id: number, data: Partial<Activo>): Promise<Activo>;
-  subirFactura(id: number, archivo: File): Promise<{ factura_url: string }>;
-  urlFactura(id: number): Promise<{ url: string }>;
   descargarEtiqueta(id: number): Promise<Blob>;               // código + QR imprimible
   darDeBaja(id: number, motivo: string): Promise<Activo>;
   cambiarMantenimiento(id: number, enMantenimiento: boolean): Promise<Activo>;

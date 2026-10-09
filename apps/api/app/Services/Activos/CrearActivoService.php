@@ -40,6 +40,8 @@ final class CrearActivoService
             throw new ServiceException('organizacion_invalida', 'Organización inexistente o inactiva.', 422);
         }
 
+        $facturaEnlace = EnlaceFactura::normalizar($data['factura_enlace'] ?? null);
+
         $db->transBegin();
         try {
             $codigo = $this->generador->siguiente($db, $categoriaId, $organizacionId);
@@ -58,6 +60,7 @@ final class CrearActivoService
                 'valor_compra'    => $data['valor_compra'] ?? null,
                 'proveedor'       => $data['proveedor'] ?? null,
                 'factura_numero'  => $data['factura_numero'] ?? null,
+                'factura_enlace'  => $facturaEnlace,
                 'condicion'       => $data['condicion'] ?? 'bueno',
                 'estado'          => 'disponible',
                 'creado_por'      => $creadoPor,

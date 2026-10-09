@@ -57,7 +57,7 @@ erDiagram
         varchar serie
         enum condicion
         enum estado
-        varchar factura_archivo_ref
+        varchar factura_enlace
         varchar qr_archivo_ref
     }
     asignaciones {
@@ -100,7 +100,7 @@ erDiagram
 - **organizaciones** — OSC del grupo. `clave` CHAR(3) única alimenta el código de activo. `is_active` controla oferta en formularios; no restringe acceso.
 - **categorias** — Clasificación de bienes. `clave` CHAR(3) única. Solo activas se ofrecen al crear activos.
 - **usuarios** — Perfil local ligado a Firebase (`firebase_uid`). `rol` ∈ {administrador, custodio, auditor}. `organizacion_id` = origen (no scope). `is_active` = bloqueo real.
-- **activos** — Inventario. `codigo` único `CAT-ORG-###`. Referencias a archivos en Firebase Storage (`factura_archivo_ref`, `qr_archivo_ref`). `condicion` y `estado` como ENUM. Columnas de auditoría.
+- **activos** — Inventario. `codigo` único `CAT-ORG-###`. `factura_enlace`: enlace de Google Drive a la factura (solo https de drive/docs.google.com; visible solo para administrador y auditor). `qr_archivo_ref` reservado (el QR se genera bajo demanda). `condicion` y `estado` como ENUM. Columnas de auditoría.
 - **asignaciones** — Resguardo de largo plazo. Vigente si `revocada_en IS NULL`. Índice parcial de unicidad lógico: un activo tiene a lo sumo una asignación vigente (garantizado por la lógica transaccional + índice de apoyo).
 - **prestamos** — Cesión temporal. Activo si `devuelto_en IS NULL`. Un activo no puede tener dos préstamos activos (lógica + índice).
 - **movimientos** — Bitácora **append-only**: sin `updated_at`, sin `deleted_at`. Historial inmutable.
@@ -186,7 +186,7 @@ CREATE TABLE activos (
     valor_compra        DECIMAL(12,2) NULL,
     proveedor           VARCHAR(200) NULL,              -- proveedor / dónde se compró
     factura_numero      VARCHAR(80) NULL,
-    factura_archivo_ref VARCHAR(500) NULL,              -- ruta en Firebase Storage
+    factura_enlace      VARCHAR(500) NULL,              -- enlace de Google Drive a la factura
     -- Identificación
     qr_archivo_ref  VARCHAR(500) NULL,                  -- etiqueta QR en Firebase Storage
     -- Clasificación de estado

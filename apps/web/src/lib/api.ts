@@ -28,7 +28,8 @@ export interface Activo {
   categoria_id: number; organizacion_id: number
   marca?: string; modelo?: string; serie?: string
   fecha_compra?: string; valor_compra?: number; proveedor?: string; factura_numero?: string
-  factura_url?: string; qr_url?: string
+  factura_enlace?: string | null        // enlace de Google Drive; solo lo reciben administrador y auditor
+  qr_url?: string
   condicion: CondicionActivo; estado: EstadoActivo; creado_en: string
 }
 export interface Asignacion {
@@ -113,12 +114,10 @@ export interface ApiClient {
   prestamosDeUsuario(id: number): Promise<PrestamoDeUsuario[]> // préstamos vigentes; admin o titular
   // activos
   listarActivos(filtros?: FiltrosActivos): Promise<Paginado<Activo>>
-  crearActivo(data: Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>): Promise<Activo>
+  crearActivo(data: Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'creado_en'>): Promise<Activo>
   obtenerActivo(id: number): Promise<{ activo: Activo; historial: Movimiento[]; asignacion_vigente: Asignacion | null }>
   obtenerActivoPublico(id: number): Promise<ActivoPublico>  // público: destino del QR, sin login
   editarActivo(id: number, data: Partial<Activo>): Promise<Activo>
-  subirFactura(id: number, archivo: File): Promise<{ factura_url: string }>
-  urlFactura(id: number): Promise<{ url: string }>
   descargarEtiqueta(id: number): Promise<Blob>               // código + QR imprimible
   darDeBaja(id: number, motivo: string): Promise<Activo>
   cambiarMantenimiento(id: number, enMantenimiento: boolean): Promise<Activo>
@@ -259,12 +258,6 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
     obtenerActivo: (id) => request('GET', `/activos/${id}`),
     obtenerActivoPublico: (id) => request('GET', `/activos/${id}/publico`),
     editarActivo: (id, data) => request('PUT', `/activos/${id}`, data),
-    subirFactura: (id, archivo) => {
-      const fd = new FormData()
-      fd.append('archivo', archivo)
-      return request('POST', `/activos/${id}/factura`, fd)
-    },
-    urlFactura: (id) => request('GET', `/activos/${id}/factura`),
     descargarEtiqueta: (id) => request('GET', `/activos/${id}/etiqueta`, undefined, 'blob'),
     darDeBaja: (id, motivo) => request('PATCH', `/activos/${id}/baja`, { motivo }),
     cambiarMantenimiento: (id, enMantenimiento) =>

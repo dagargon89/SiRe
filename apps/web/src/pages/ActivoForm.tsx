@@ -48,6 +48,7 @@ export function ActivoForm() {
         serie: val('serie') || undefined,
         proveedor: val('proveedor') || undefined,
         factura_numero: val('factura_numero') || undefined,
+        factura_enlace: val('factura_enlace').trim() || null,
         fecha_compra: val('fecha_compra') || undefined,
         valor_compra: val('valor_compra') ? Number(val('valor_compra')) : undefined,
         condicion: (val('condicion') || 'bueno') as CondicionActivo,
@@ -85,6 +86,10 @@ export function ActivoForm() {
             options={CONDICIONES.map((c) => ({ value: c, label: c }))} />
           <Field label="Proveedor" value={val('proveedor')} onChange={(e) => set('proveedor', e.target.value)} />
           <Field label="N.º de factura" value={val('factura_numero')} onChange={(e) => set('factura_numero', e.target.value)} />
+          <div className="col-span-2">
+            <Field label="Enlace de la factura (Drive)" type="url" placeholder="https://drive.google.com/…"
+              value={val('factura_enlace')} onChange={(e) => set('factura_enlace', e.target.value)} />
+          </div>
           <DatePicker label="Fecha de compra" value={val('fecha_compra')} onChange={(v) => set('fecha_compra', v)} />
           <Field label="Valor de compra" type="number" step="0.01" value={val('valor_compra')} onChange={(e) => set('valor_compra', e.target.value)} />
 

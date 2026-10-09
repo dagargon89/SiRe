@@ -82,3 +82,7 @@ Base nueva: se crea el proyecto Firebase, se configura el proveedor email/passwo
 ---
 
 *ADR-002 · Proyecto SiRe · v1.0 · 2026-07-17*
+
+## Enmienda 2026-10-09 — Factura como enlace de Google Drive
+
+La subida de facturas a Firebase Storage nunca se conectó a la interfaz. Se decide capturar en el activo el **enlace de Google Drive** donde vive la factura (`activos.factura_enlace`) y retirar Firebase Storage del backend (`POST/GET /activos/{id}/factura`, `ArchivoStorage`, columna `factura_archivo_ref`). El enlace solo acepta `https://drive.google.com/…` o `https://docs.google.com/…`, se expone únicamente a administrador y auditor, y no aparece en la ficha pública del QR. El control de acceso al archivo lo dan los permisos de compartir en Drive. Firebase Authentication no cambia.

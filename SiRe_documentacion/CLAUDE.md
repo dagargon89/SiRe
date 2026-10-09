@@ -25,7 +25,7 @@ Sistema web interno de **control de resguardos (custodia) de activos** —equipo
 | Datos | MySQL 8.4 |
 | Caché/colas/rate-limit | Redis 7 |
 | Auth | Firebase Authentication (ID token verificado en CI4) |
-| Archivos | Firebase Storage |
+| Archivos | Factura: enlace a Google Drive (sin subida de archivos) |
 | PDF / QR | mPDF / endroid/qr-code (server-side) |
 | Correo | SMTP vía `spark` programado (cron) |
 
@@ -50,7 +50,7 @@ Sistema web interno de **control de resguardos (custodia) de activos** —equipo
       │                                          Filter: verifica ID token (Redis cache de claves)
       ▼                                                           ▼
 [ Firebase Auth (IdP) ]                              [ Controllers finos ]
-[ Firebase Storage (archivos) ]                              ▼
+                                                             ▼
                                                     [ Services / Actions (negocio, transacciones) ]
                                                              ▼
                                                     [ Models / Query Builder ]  ──▶  [ MySQL 8.4 ]

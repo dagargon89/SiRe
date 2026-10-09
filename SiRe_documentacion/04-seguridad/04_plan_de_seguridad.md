@@ -149,7 +149,7 @@ El backend solo contacta endpoints conocidos (Google JWKS, Firebase, SMTP). Sin 
 - [ ] Solo Administrador crea Administradores (test).
 - [ ] Sin endpoint de edición/borrado de `movimientos`.
 - [ ] Precondiciones de estado en transacción (asignar/prestar) (test de concurrencia).
-- [ ] Storage deny-by-default; facturas solo por URL firmada.
+- [ ] Enlace de factura (Google Drive) validado (https, drive/docs.google.com) y expuesto solo a administrador y auditor; el acceso al archivo lo controla el permiso de compartir en Drive.
 - [ ] CORS con orígenes explícitos; HTTPS forzado.
 - [ ] Sin secretos en repo (`composer audit`, escaneo de secretos).
 

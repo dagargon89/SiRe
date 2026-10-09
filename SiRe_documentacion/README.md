@@ -35,7 +35,7 @@ Aplicación web interna para el control de resguardos de equipo y mobiliario de 
 | Base de datos | MySQL | 8.4 |
 | Caché / colas ligeras / rate limit | Redis | 7.x |
 | Autenticación | Firebase Authentication (email/password; Google restringido a dominio, opcional) | — |
-| Almacenamiento de archivos | Firebase Storage (copias de factura, etiquetas QR) | — |
+| Almacenamiento de archivos | Factura: enlace a Google Drive (no se suben archivos); etiqueta QR generada bajo demanda | — |
 | Generación de PDF | mPDF (server-side, CI4) — carta responsiva + reportes | 8.x |
 | Generación de QR | endroid/qr-code (server-side, CI4) | 5.x |
 | Correo | SMTP (`noreply@planjuarez.org`) vía comando `spark` programado | — |
@@ -75,7 +75,7 @@ SPA React servida estáticamente que consume una API REST de CodeIgniter 4. El c
 | Desactivar bloquea | Revoca refresh tokens en Firebase + perfil inactivo en MySQL (atómico) | ADR-002, regla 8 |
 | Identificación del activo | Código físico `CAT-ORG-###` correlativo + QR con deep-link | Definición §6.4; a prueba de concurrencia |
 | Categorías | Entidad gestionable con clave de 3 letras | Definición §6.3 |
-| Almacenamiento de archivos | Firebase Storage (factura + etiqueta QR) | ADR-002 |
+| Almacenamiento de archivos | Factura: enlace a Google Drive (enmienda 2026-10-09) | ADR-002 |
 | Bitácora de movimientos | Append-only, inmutable, atómica con el cambio de estado | Definición §6.9/§7 |
 | Reportes MVP | Carta responsiva + PDF de inventario y de movimientos | Definición §6.6; Excel/CSV fuera (§9) |
 | Fotos del activo | Fuera del MVP | Definición §9 |

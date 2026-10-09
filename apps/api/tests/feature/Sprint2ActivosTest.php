@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Auth\CurrentUser;
-use App\Models\ActivoModel;
-use App\Services\Activos\GuardarFacturaService;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\DatabaseTestTrait;
 use CodeIgniter\Test\FeatureTestTrait;
 use Config\Services;
 use Tests\Support\Auth\FakeTokenVerifier;
-use Tests\Support\Storage\FakeArchivoStorage;
 
 /**
  * Gate de Sprint 2 — activos e identificación: alta con código correlativo
@@ -185,41 +182,58 @@ final class Sprint2ActivosTest extends CIUnitTestCase
         $this->assertStringContainsString('%PDF', (string) $r->getBody());
     }
 
-    public function testFacturaSinRegistroDevuelve404(): void
+    public function testFacturaEnlaceDriveSeGuardaYEdita(): void
     {
-        $id = $this->crearActivoDe('a1');
-        $r  = $this->withHeaders(['Authorization' => 'Bearer tok-a1'])->get('api/v1/activos/' . $id . '/factura');
-        $r->assertStatus(404);
-        $r->assertJSONFragment(['error' => 'sin_factura']);
+        $h   = $this->actuarComo('administrador', 'a1');
+        $url = 'https://drive.google.com/file/d/abc123/view';
+        $r   = $this->withBodyFormat('json')->withHeaders($h)->post('api/v1/activos', $this->payload(['factura_enlace' => $url]));
+        $r->assertStatus(201);
+        $this->assertSame($url, json_decode($r->getJSON(), true)['factura_enlace']);
+        $id = (int) json_decode($r->getJSON(), true)['id'];
+
+        $otra = 'https://docs.google.com/document/d/xyz/edit';
+        $this->withBodyFormat('json')->withHeaders($h)->put('api/v1/activos/' . $id, ['factura_enlace' => $otra])
+            ->assertStatus(200);
+        $this->seeInDatabase('activos', ['id' => $id, 'factura_enlace' => $otra]);
+
+        // Vacío = quitar el enlace.
+        $this->withBodyFormat('json')->withHeaders($h)->put('api/v1/activos/' . $id, ['factura_enlace' => ''])
+            ->assertStatus(200);
+        $this->seeInDatabase('activos', ['id' => $id, 'factura_enlace' => null]);
     }
 
-    public function testFacturaUrlFirmadaConStorage(): void
+    public function testFacturaEnlaceRechazaUrlNoDrive(): void
     {
-        Services::injectMock('archivoStorage', new FakeArchivoStorage());
-        $id = $this->crearActivoDe('a1');
-        $this->db->table('activos')->where('id', $id)->update(['factura_archivo_ref' => 'facturas/' . $id . '_x.pdf']);
+        $h = $this->actuarComo('administrador', 'a1');
+        foreach (['http://drive.google.com/file/d/x', 'https://evil.example/drive.google.com', 'https://drive.google.com.evil.example/x', 'javascript:alert(1)'] as $malo) {
+            $r = $this->withBodyFormat('json')->withHeaders($h)->post('api/v1/activos', $this->payload(['factura_enlace' => $malo]));
+            $r->assertStatus(422);
+            $r->assertJSONFragment(['error' => 'enlace_invalido']);
+        }
+        $this->dontSeeInDatabase('activos', ['nombre' => 'Laptop']);
 
-        $r = $this->withHeaders(['Authorization' => 'Bearer tok-a1'])->get('api/v1/activos/' . $id . '/factura');
-        $r->assertStatus(200);
-        $this->assertStringContainsString('fake.storage', json_decode($r->getJSON(), true)['url']);
+        $id = $this->crearActivoDe('a2');
+        $this->withBodyFormat('json')->withHeaders(['Authorization' => 'Bearer tok-a2'])
+            ->put('api/v1/activos/' . $id, ['factura_enlace' => 'https://example.com/f.pdf'])
+            ->assertStatus(422);
     }
 
-    public function testCustodioNoAccedeFactura(): void
+    public function testFacturaEnlaceSoloVisibleParaAdminYAuditor(): void
     {
-        $id = $this->crearActivoDe('a1');
-        $c  = $this->actuarComo('custodio', 'c1');
-        $this->withHeaders($c)->get('api/v1/activos/' . $id . '/factura')->assertStatus(403);
-    }
+        $h   = $this->actuarComo('administrador', 'a1');
+        $url = 'https://drive.google.com/file/d/abc123/view';
+        $r   = $this->withBodyFormat('json')->withHeaders($h)->post('api/v1/activos', $this->payload(['factura_enlace' => $url]));
+        $id  = (int) json_decode($r->getJSON(), true)['id'];
 
-    public function testGuardarFacturaServiceSubeYActualiza(): void
-    {
-        $id   = $this->crearActivoDe('a1');
-        $fake = new FakeArchivoStorage();
-        $url  = (new GuardarFacturaService(new ActivoModel(), $fake))
-            ->execute($id, 'PDFDATA', 'application/pdf', 'pdf', 1);
+        $aud = $this->actuarComo('auditor', 'au1');
+        $this->assertSame($url, json_decode($this->withHeaders($aud)->get('api/v1/activos/' . $id)->getJSON(), true)['activo']['factura_enlace']);
 
-        $this->assertStringContainsString('fake.storage', $url);
-        $this->assertCount(1, $fake->archivos);
-        $this->assertNotEmpty((new ActivoModel())->find($id)['factura_archivo_ref']);
+        $c = $this->actuarComo('custodio', 'c1');
+        $this->assertNull(json_decode($this->withHeaders($c)->get('api/v1/activos/' . $id)->getJSON(), true)['activo']['factura_enlace']);
+        $this->assertNull(json_decode($this->withHeaders($c)->get('api/v1/activos')->getJSON(), true)['data'][0]['factura_enlace']);
+
+        // La ficha pública (QR) no expone datos de factura.
+        $pub = json_decode($this->get('api/v1/activos/' . $id . '/publico')->getJSON(), true);
+        $this->assertArrayNotHasKey('factura_enlace', $pub);
     }
 }

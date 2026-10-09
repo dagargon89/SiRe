@@ -140,7 +140,7 @@ export function useActivoPublico(id: number) {
   return useQuery({ queryKey: ['activo-publico', id], queryFn: () => api.obtenerActivoPublico(id) })
 }
 
-type NuevoActivo = Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'factura_url' | 'creado_en'>
+type NuevoActivo = Omit<Activo, 'id' | 'codigo' | 'estado' | 'qr_url' | 'creado_en'>
 
 export function useGuardarActivo() {
   const qc = useQueryClient()

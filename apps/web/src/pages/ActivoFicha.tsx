@@ -73,6 +73,14 @@ export function ActivoFicha() {
         <Dato k="Condición" v={activo.condicion} />
         <Dato k="Proveedor" v={activo.proveedor} />
         <Dato k="Factura" v={activo.factura_numero} />
+        {activo.factura_enlace && (
+          <div>
+            <div className="text-ink-muted">Archivo de factura</div>
+            <a href={activo.factura_enlace} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+              Abrir en Drive ↗
+            </a>
+          </div>
+        )}
         {asignacion_vigente && (
           <Dato
             k="Custodio actual"

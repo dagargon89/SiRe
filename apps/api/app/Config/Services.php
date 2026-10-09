@@ -9,8 +9,6 @@ use App\Auth\KreaitFirebaseAdmin;
 use App\Auth\TokenVerifier;
 use App\Notificaciones\EmailMailer;
 use App\Notificaciones\Mailer;
-use App\Storage\ArchivoStorage;
-use App\Storage\FirebaseStorage;
 use CodeIgniter\Config\BaseService;
 use Kreait\Firebase\Contract\Auth as FirebaseAuth;
 use Kreait\Firebase\Factory;
@@ -70,19 +68,6 @@ class Services extends BaseService
         }
 
         return static::firebaseFactory()->createAuth();
-    }
-
-    /** Almacenamiento de archivos (Firebase Storage). */
-    public static function archivoStorage($getShared = true): ArchivoStorage
-    {
-        if ($getShared) {
-            return static::getSharedInstance('archivoStorage');
-        }
-
-        $bucket = (string) (env('firebase.storageBucket') ?? '');
-        $storage = static::firebaseFactory()->createStorage();
-
-        return new FirebaseStorage($storage->getBucket($bucket !== '' ? $bucket : null));
     }
 
     /** Verificador de ID token de Firebase (envuelve firebaseAuth para poder mockear). */
