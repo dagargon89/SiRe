@@ -32,9 +32,10 @@ export interface Activo {
   qr_url?: string
   condicion: CondicionActivo; estado: EstadoActivo; creado_en: string
 }
-/** Foto de evidencia del activo (equipo/accesorios). La imagen se pide con descargarEvidencia. */
+export type TipoEvidencia = 'equipo' | 'accesorio' | 'dano'
+/** Foto de evidencia del activo. La imagen se pide con descargarEvidencia. */
 export interface Evidencia {
-  id: number; activo_id: number; descripcion?: string | null
+  id: number; activo_id: number; tipo: TipoEvidencia; descripcion?: string | null
   ancho: number; alto: number; subido_por: number; creado_en: string
 }
 export interface Asignacion {
@@ -126,7 +127,7 @@ export interface ApiClient {
   descargarEtiqueta(id: number): Promise<Blob>               // código + QR imprimible
   // evidencias fotográficas (ver: todos; subir/eliminar: administrador; no van en la ficha pública)
   listarEvidencias(activoId: number): Promise<Evidencia[]>
-  subirEvidencia(activoId: number, foto: File, descripcion?: string): Promise<Evidencia>
+  subirEvidencia(activoId: number, foto: File, tipo: TipoEvidencia, descripcion?: string): Promise<Evidencia>
   descargarEvidencia(id: number, miniatura?: boolean): Promise<Blob> // JPEG
   eliminarEvidencia(id: number): Promise<void>
   darDeBaja(id: number, motivo: string): Promise<Activo>
@@ -270,9 +271,10 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
     editarActivo: (id, data) => request('PUT', `/activos/${id}`, data),
     descargarEtiqueta: (id) => request('GET', `/activos/${id}/etiqueta`, undefined, 'blob'),
     listarEvidencias: (activoId) => request('GET', `/activos/${activoId}/evidencias`),
-    subirEvidencia: (activoId, foto, descripcion) => {
+    subirEvidencia: (activoId, foto, tipo, descripcion) => {
       const fd = new FormData()
       fd.append('foto', foto)
+      fd.append('tipo', tipo)
       if (descripcion) fd.append('descripcion', descripcion)
       return request('POST', `/activos/${activoId}/evidencias`, fd)
     },

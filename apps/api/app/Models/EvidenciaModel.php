@@ -14,6 +14,6 @@ class EvidenciaModel extends Model
     protected $useTimestamps = false;
 
     protected $allowedFields = [
-        'activo_id', 'archivo', 'descripcion', 'ancho', 'alto', 'bytes', 'subido_por',
+        'activo_id', 'tipo', 'archivo', 'descripcion', 'ancho', 'alto', 'bytes', 'subido_por',
     ];
 }

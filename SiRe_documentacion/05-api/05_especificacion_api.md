@@ -67,7 +67,7 @@
 | PUT | `/api/v1/activos/{id}` | administrador | Edita |
 | GET | `/api/v1/activos/{id}/etiqueta` | administrador | PDF/PNG imprimible (código + QR) |
 | GET | `/api/v1/activos/{id}/evidencias` | todos (aprobados) | Lista de fotos de evidencia del activo |
-| POST | `/api/v1/activos/{id}/evidencias` | administrador | Sube una foto (multipart `foto`, `descripcion?`; JPG/PNG/WebP ≤ 10 MB; se reduce a 1600 px y se recodifica a JPEG sin metadatos; máx. 30 por activo) |
+| POST | `/api/v1/activos/{id}/evidencias` | administrador | Sube una foto (multipart `foto`, `tipo` = `equipo`·`accesorio`·`dano`, `descripcion?`; JPG/PNG/WebP ≤ 10 MB; se reduce a 1600 px y se recodifica a JPEG sin metadatos; máx. 30 por activo) |
 | GET | `/api/v1/evidencias/{id}/archivo[?miniatura=1]` | todos (aprobados) | Imagen JPEG (miniatura de 400 px opcional); no se expone en la ficha pública |
 | DELETE | `/api/v1/evidencias/{id}` | administrador | Elimina la foto y sus archivos |
 | PATCH | `/api/v1/activos/{id}/baja` | administrador | Da de baja (motivo) |
@@ -148,8 +148,9 @@ export interface Activo {
   qr_url?: string;
   condicion: CondicionActivo; estado: EstadoActivo; creado_en: string;
 }
+export type TipoEvidencia = 'equipo' | 'accesorio' | 'dano';
 export interface Evidencia {
-  id: number; activo_id: number; descripcion?: string | null;
+  id: number; activo_id: number; tipo: TipoEvidencia; descripcion?: string | null;
   ancho: number; alto: number; subido_por: number; creado_en: string;
 }
 export interface Asignacion {
@@ -233,7 +234,7 @@ export interface ApiClient {
   editarActivo(id: number, data: Partial<Activo>): Promise<Activo>;
   descargarEtiqueta(id: number): Promise<Blob>;               // código + QR imprimible
   listarEvidencias(activoId: number): Promise<Evidencia[]>;
-  subirEvidencia(activoId: number, foto: File, descripcion?: string): Promise<Evidencia>;
+  subirEvidencia(activoId: number, foto: File, tipo: TipoEvidencia, descripcion?: string): Promise<Evidencia>;
   descargarEvidencia(id: number, miniatura?: boolean): Promise<Blob>; // JPEG
   eliminarEvidencia(id: number): Promise<void>;
   darDeBaja(id: number, motivo: string): Promise<Activo>;

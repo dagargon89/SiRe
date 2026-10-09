@@ -1,14 +1,18 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from 'react'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { Field } from '../components/Field'
 import { Modal } from '../components/Modal'
+import { Select } from '../components/Select'
 import { useToast } from '../lib/toast'
-import { ApiError, type Evidencia } from '../lib/api'
+import { ApiError, type Evidencia, type TipoEvidencia } from '../lib/api'
 import { useEliminarEvidencia, useEvidencias, useImagenEvidencia, useSubirEvidencia } from '../lib/queries'
 
 const TIPOS = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_BYTES = 10 * 1024 * 1024
+const TIPO_LABEL: Record<TipoEvidencia, string> = { equipo: 'Equipo', accesorio: 'Accesorios', dano: 'Daños' }
+const TIPO_OPCION: Record<TipoEvidencia, string> = { equipo: 'Equipo', accesorio: 'Accesorio', dano: 'Daño' }
+const ORDEN: TipoEvidencia[] = ['equipo', 'accesorio', 'dano']
 
 /** URL de objeto para un blob, liberada al desmontar o cambiar. */
 function useObjectUrl(blob?: Blob): string | undefined {
@@ -35,28 +39,52 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
 
   const [archivos, setArchivos] = useState<File[] | null>(null)
   const [descripcion, setDescripcion] = useState('')
+  const [tipo, setTipo] = useState<TipoEvidencia | ''>('')
   const [progreso, setProgreso] = useState<string | null>(null)
   const [errores, setErrores] = useState<string[]>([])
   const [viendo, setViendo] = useState<Evidencia | null>(null)
 
+  // Arrastrar y soltar (solo administrador). El contador evita el parpadeo de
+  // dragenter/dragleave al pasar sobre los elementos hijos de la tarjeta.
+  const [arrastrando, setArrastrando] = useState(false)
+  const capas = useRef(0)
+  const puedeSoltar = esAdmin && !archivos && !viendo
+  const traeArchivos = (e: DragEvent) => e.dataTransfer.types.includes('Files')
+
+  // Si el arrastre termina fuera de la tarjeta (o se cancela con Esc), quita el resaltado.
+  useEffect(() => {
+    if (!arrastrando) return
+    const limpiar = () => { capas.current = 0; setArrastrando(false) }
+    window.addEventListener('drop', limpiar)
+    window.addEventListener('dragend', limpiar)
+    return () => {
+      window.removeEventListener('drop', limpiar)
+      window.removeEventListener('dragend', limpiar)
+    }
+  }, [arrastrando])
+
   function elegir(e: ChangeEvent<HTMLInputElement>) {
-    const lista = Array.from(e.target.files ?? [])
+    recibir(Array.from(e.target.files ?? []))
     e.target.value = '' // permite volver a elegir los mismos archivos
+  }
+
+  function recibir(lista: File[]) {
     if (lista.length === 0) return
     setDescripcion('')
+    setTipo('')
     setErrores([])
     setArchivos(lista)
   }
 
   async function enviar() {
-    if (!archivos) return
+    if (!archivos || !tipo) return
     const fallos: string[] = []
     for (const [i, f] of archivos.entries()) {
       setProgreso(`Subiendo ${i + 1} de ${archivos.length}…`)
       if (!TIPOS.includes(f.type)) { fallos.push(`${f.name}: solo JPG, PNG o WebP.`); continue }
       if (f.size > MAX_BYTES) { fallos.push(`${f.name}: supera 10 MB.`); continue }
       try {
-        await subir.mutateAsync({ activoId, foto: f, descripcion: descripcion.trim() || undefined })
+        await subir.mutateAsync({ activoId, foto: f, tipo, descripcion: descripcion.trim() || undefined })
       } catch (err) {
         fallos.push(`${f.name}: ${err instanceof ApiError ? err.message : 'no se pudo subir.'}`)
       }
@@ -82,37 +110,93 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
   const evidencias = q.data ?? []
 
   return (
-    <Card className="p-6 mb-4">
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <h2 className="text-sm font-medium text-ink-muted">Evidencias ({evidencias.length})</h2>
+    <Card
+      className={`p-6 mb-4 relative ${arrastrando ? 'outline-2 outline-dashed outline-accent' : ''}`}
+      onDragEnter={(e) => {
+        if (!puedeSoltar || !traeArchivos(e)) return
+        e.preventDefault()
+        capas.current += 1
+        setArrastrando(true)
+      }}
+      onDragOver={(e) => {
+        if (!puedeSoltar || !traeArchivos(e)) return
+        e.preventDefault() // necesario para que el navegador permita soltar
+        e.dataTransfer.dropEffect = 'copy'
+      }}
+      onDragLeave={() => {
+        if (!puedeSoltar) return
+        capas.current = Math.max(0, capas.current - 1)
+        if (capas.current === 0) setArrastrando(false)
+      }}
+      onDrop={(e) => {
+        if (!puedeSoltar || !traeArchivos(e)) return
+        e.preventDefault()
+        capas.current = 0
+        setArrastrando(false)
+        recibir(Array.from(e.dataTransfer.files))
+      }}
+    >
+      {arrastrando && (
+        <div className="absolute inset-0 z-10 grid place-items-center rounded-[10px] bg-surface/90 pointer-events-none">
+          <p className="text-sm font-semibold text-accent">Suelta las fotos para agregarlas</p>
+        </div>
+      )}
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <h2 className="text-lg font-semibold text-ink">
+            Evidencias
+            {evidencias.length > 0 && <span className="ml-2 text-sm font-medium text-ink-muted">{evidencias.length}</span>}
+          </h2>
+          <p className="text-sm text-ink-muted">Fotos del equipo, sus accesorios y daños.</p>
+        </div>
+        {esAdmin && evidencias.length > 0 && (
+          <Button variant="secondary" className="flex-none" onClick={() => inputRef.current?.click()}>Agregar fotos</Button>
+        )}
         {esAdmin && (
-          <>
-            <Button variant="secondary" onClick={() => inputRef.current?.click()}>Agregar fotos</Button>
-            <input ref={inputRef} type="file" accept={TIPOS.join(',')} multiple hidden onChange={elegir}
-              aria-label="Elegir fotos de evidencia" />
-          </>
+          <input ref={inputRef} type="file" accept={TIPOS.join(',')} multiple hidden onChange={elegir}
+            aria-label="Elegir fotos de evidencia" />
         )}
       </div>
 
       {q.isLoading && <p className="text-sm text-ink-muted">Cargando…</p>}
       {q.isError && <p className="text-sm text-danger">No se pudieron cargar las fotos.</p>}
       {!q.isLoading && !q.isError && evidencias.length === 0 && (
-        <p className="text-sm text-ink-muted">Sin fotos del equipo ni de sus accesorios.</p>
+        esAdmin ? (
+          <button type="button" onClick={() => inputRef.current?.click()}
+            className="w-full flex flex-col items-center justify-center gap-1.5 py-8 px-4 rounded-md border-2 border-dashed border-border bg-bg text-center transition-colors hover:border-accent hover:bg-surface-2">
+            <span aria-hidden="true" className="text-2xl leading-none text-ink-muted">⤒</span>
+            <span className="text-sm font-semibold text-ink">
+              Arrastra fotos aquí o <span className="text-accent">elígelas</span>
+            </span>
+            <span className="text-xs text-ink-muted">JPG, PNG o WebP · hasta 10 MB cada una</span>
+          </button>
+        ) : (
+          <p className="text-sm text-ink-muted">Aún no hay fotos de este activo.</p>
+        )
       )}
 
-      {evidencias.length > 0 && (
-        <ul className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {evidencias.map((ev) => (
-            <li key={ev.id}>
-              <button type="button" onClick={() => setViendo(ev)}
-                className="block w-full text-left rounded-md overflow-hidden border border-border hover:border-accent">
-                <ImagenEvidencia evidencia={ev} miniatura className="w-full aspect-square object-cover" />
-                {ev.descripcion && <span className="block px-2 py-1 text-xs text-ink truncate">{ev.descripcion}</span>}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {ORDEN.map((t) => {
+        const grupo = evidencias.filter((ev) => ev.tipo === t)
+        if (grupo.length === 0) return null
+        return (
+          <section key={t} className="mt-4 first-of-type:mt-0">
+            <h3 className={`text-xs font-semibold uppercase tracking-wide mb-2 ${t === 'dano' ? 'text-danger' : 'text-ink-muted'}`}>
+              {TIPO_LABEL[t]} ({grupo.length})
+            </h3>
+            <ul className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {grupo.map((ev) => (
+                <li key={ev.id}>
+                  <button type="button" onClick={() => setViendo(ev)}
+                    className="block w-full text-left rounded-md overflow-hidden border border-border hover:border-accent">
+                    <ImagenEvidencia evidencia={ev} miniatura className="w-full aspect-square object-cover" />
+                    {ev.descripcion && <span className="block px-2 py-1 text-xs text-ink truncate">{ev.descripcion}</span>}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      })}
 
       {archivos && (
         <Modal title="Agregar fotos" onClose={() => { if (!progreso) setArchivos(null) }}>
@@ -120,6 +204,10 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
             {archivos.length === 1 ? '1 foto seleccionada.' : `${archivos.length} fotos seleccionadas.`}
             {' '}Se reducen a 1600 px y se les quitan los datos de ubicación.
           </p>
+          <div className="mb-3">
+            <Select label="Tipo" value={tipo || null} onChange={(v) => setTipo(v as TipoEvidencia)} disabled={!!progreso}
+              options={ORDEN.map((t) => ({ value: t, label: TIPO_OPCION[t] }))} />
+          </div>
           <Field label="Descripción (opcional)" placeholder="Ej. cargador, estado al entregar…" maxLength={255}
             value={descripcion} onChange={(e) => setDescripcion(e.target.value)} disabled={!!progreso} />
           {errores.length > 0 && (
@@ -130,14 +218,14 @@ export function ActivoEvidencias({ activoId, esAdmin }: { activoId: number; esAd
               {errores.length > 0 ? 'Cerrar' : 'Cancelar'}
             </Button>
             {errores.length === 0 && (
-              <Button onClick={() => void enviar()} disabled={!!progreso}>{progreso ?? 'Subir'}</Button>
+              <Button onClick={() => void enviar()} disabled={!!progreso || !tipo}>{progreso ?? 'Subir'}</Button>
             )}
           </div>
         </Modal>
       )}
 
       {viendo && (
-        <Modal title={viendo.descripcion || 'Evidencia'} onClose={() => setViendo(null)} wide>
+        <Modal title={`${TIPO_OPCION[viendo.tipo] ?? 'Evidencia'}${viendo.descripcion ? ` · ${viendo.descripcion}` : ''}`} onClose={() => setViendo(null)} wide>
           <ImagenEvidencia evidencia={viendo} miniatura={false} className="w-full max-h-[65vh] object-contain bg-surface-2 rounded-md" />
           <div className="flex items-center justify-between gap-2 mt-4">
             <span className="text-xs text-ink-muted">{viendo.creado_en?.slice(0, 16).replace('T', ' ')}</span>

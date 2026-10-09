@@ -104,11 +104,11 @@ final class EvidenciasTest extends CIUnitTestCase
         return new EvidenciasService(new EvidenciaModel(), new ActivoModel(), new MovimientoModel(), $this->almacen, new ProcesadorImagen());
     }
 
-    private function subir(?string $descripcion = 'Cargador'): array
+    private function subir(?string $descripcion = 'Cargador', string $tipo = 'accesorio'): array
     {
         $ruta = $this->jpegTemporal(3000, 2000);
         try {
-            return $this->service()->subir($this->activoId, $ruta, $descripcion, $this->adminId);
+            return $this->service()->subir($this->activoId, $ruta, $tipo, $descripcion, $this->adminId);
         } finally {
             unlink($ruta);
         }
@@ -123,7 +123,7 @@ final class EvidenciasTest extends CIUnitTestCase
         $this->assertNotNull($this->almacen->ruta($e['archivo']));
         $mini = getimagesize((string) $this->almacen->ruta($e['archivo'], true));
         $this->assertSame(400, $mini[0]);
-        $this->seeInDatabase('movimientos', ['activo_id' => $this->activoId, 'tipo' => 'evidencia', 'notas' => 'Foto agregada: Cargador']);
+        $this->seeInDatabase('movimientos', ['activo_id' => $this->activoId, 'tipo' => 'evidencia', 'notas' => 'Foto agregada (accesorio): Cargador']);
     }
 
     public function testRechazaArchivoQueNoEsImagen(): void
@@ -131,7 +131,7 @@ final class EvidenciasTest extends CIUnitTestCase
         $ruta = tempnam(sys_get_temp_dir(), 'evid');
         file_put_contents($ruta, '%PDF-1.4 no soy una foto');
         try {
-            $this->service()->subir($this->activoId, $ruta, null, $this->adminId);
+            $this->service()->subir($this->activoId, $ruta, 'equipo', null, $this->adminId);
             $this->fail('Debió rechazar el archivo');
         } catch (ServiceException $e) {
             $this->assertSame('tipo_no_permitido', $e->codigo);
@@ -139,6 +139,25 @@ final class EvidenciasTest extends CIUnitTestCase
             unlink($ruta);
         }
         $this->dontSeeInDatabase('evidencias', ['activo_id' => $this->activoId]);
+    }
+
+    public function testRechazaTipoInvalido(): void
+    {
+        try {
+            $this->subir('Pantalla', 'otro');
+            $this->fail('Debió rechazar el tipo');
+        } catch (ServiceException $e) {
+            $this->assertSame('tipo_invalido', $e->codigo);
+        }
+        $this->dontSeeInDatabase('evidencias', ['activo_id' => $this->activoId]);
+        $this->assertSame([], glob($this->dir . '/*') ?: []);
+    }
+
+    public function testTipoDanoQuedaEnLaBitacora(): void
+    {
+        $this->subir('Pantalla estrellada', 'dano');
+        $this->seeInDatabase('evidencias', ['activo_id' => $this->activoId, 'tipo' => 'dano']);
+        $this->seeInDatabase('movimientos', ['tipo' => 'evidencia', 'notas' => 'Foto agregada (daño): Pantalla estrellada']);
     }
 
     public function testTodosVenLaListaYLaImagen(): void
@@ -151,6 +170,7 @@ final class EvidenciasTest extends CIUnitTestCase
         $lista = json_decode($r->getJSON(), true);
         $this->assertCount(1, $lista);
         $this->assertSame('Cargador', $lista[0]['descripcion']);
+        $this->assertSame('accesorio', $lista[0]['tipo']);
         $this->assertArrayNotHasKey('archivo', $lista[0]);
 
         $img = $this->withHeaders($c)->get('api/v1/evidencias/' . $e['id'] . '/archivo?miniatura=1');
@@ -194,7 +214,7 @@ final class EvidenciasTest extends CIUnitTestCase
 
         $this->dontSeeInDatabase('evidencias', ['id' => $e['id']]);
         $this->assertFileDoesNotExist($ruta);
-        $this->seeInDatabase('movimientos', ['activo_id' => $this->activoId, 'tipo' => 'evidencia', 'notas' => 'Foto eliminada: Cargador']);
+        $this->seeInDatabase('movimientos', ['activo_id' => $this->activoId, 'tipo' => 'evidencia', 'notas' => 'Foto eliminada (accesorio): Cargador']);
     }
 
     public function testFichaPublicaNoIncluyeEvidencias(): void

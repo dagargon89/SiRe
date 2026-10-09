@@ -18,6 +18,9 @@ final class EvidenciasService
 {
     public const MAX_POR_ACTIVO = 30;
 
+    /** Valor guardado => etiqueta (para la bitácora). */
+    public const TIPOS = ['equipo' => 'equipo', 'accesorio' => 'accesorio', 'dano' => 'daño'];
+
     public function __construct(
         private readonly EvidenciaModel $evidencias,
         private readonly ActivoModel $activos,
@@ -27,8 +30,11 @@ final class EvidenciasService
     ) {
     }
 
-    public function subir(int $activoId, string $rutaTemporal, ?string $descripcion, int $actorId): array
+    public function subir(int $activoId, string $rutaTemporal, string $tipo, ?string $descripcion, int $actorId): array
     {
+        if (! array_key_exists($tipo, self::TIPOS)) {
+            throw new ServiceException('tipo_invalido', 'El tipo de foto debe ser equipo, accesorio o daño.', 422);
+        }
         if ($this->activos->find($activoId) === null) {
             throw new ServiceException('no_existe', 'Activo no encontrado.', 404);
         }
@@ -47,6 +53,7 @@ final class EvidenciasService
         try {
             $id = (int) $this->evidencias->insert([
                 'activo_id'   => $activoId,
+                'tipo'        => $tipo,
                 'archivo'     => $archivo,
                 'descripcion' => $descripcion,
                 'ancho'       => $foto['ancho'],
@@ -58,7 +65,7 @@ final class EvidenciasService
                 'activo_id'     => $activoId,
                 'tipo'          => 'evidencia',
                 'realizado_por' => $actorId,
-                'notas'         => mb_substr('Foto agregada' . ($descripcion !== null ? ': ' . $descripcion : ''), 0, 500),
+                'notas'         => mb_substr('Foto agregada (' . self::TIPOS[$tipo] . ')' . ($descripcion !== null ? ': ' . $descripcion : ''), 0, 500),
             ]);
             if ($id === 0 || $db->transStatus() === false) {
                 throw new ServiceException('evidencia_fallida', 'No se pudo guardar la foto.', 422);
@@ -89,7 +96,7 @@ final class EvidenciasService
                 'activo_id'     => (int) $evidencia['activo_id'],
                 'tipo'          => 'evidencia',
                 'realizado_por' => $actorId,
-                'notas'         => mb_substr('Foto eliminada' . ($evidencia['descripcion'] !== null ? ': ' . $evidencia['descripcion'] : ''), 0, 500),
+                'notas'         => mb_substr('Foto eliminada (' . (self::TIPOS[$evidencia['tipo']] ?? $evidencia['tipo']) . ')' . ($evidencia['descripcion'] !== null ? ': ' . $evidencia['descripcion'] : ''), 0, 500),
             ]);
             if ($db->transStatus() === false) {
                 throw new ServiceException('evidencia_fallida', 'No se pudo eliminar la foto.', 422);

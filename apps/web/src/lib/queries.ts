@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './apiClient'
-import type { Activo, CondicionActivo, EstadoPrestamo, FiltroUsuarios, FiltrosActivos, Rol } from './api'
+import type { Activo, CondicionActivo, EstadoPrestamo, FiltroUsuarios, FiltrosActivos, Rol, TipoEvidencia } from './api'
 
 // ─── Organizaciones ───────────────────────────────────────────────
 export function useOrganizaciones() {
@@ -194,8 +194,8 @@ export function useImagenEvidencia(id: number, miniatura: boolean) {
 export function useSubirEvidencia() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (v: { activoId: number; foto: File; descripcion?: string }) =>
-      api.subirEvidencia(v.activoId, v.foto, v.descripcion),
+    mutationFn: (v: { activoId: number; foto: File; tipo: TipoEvidencia; descripcion?: string }) =>
+      api.subirEvidencia(v.activoId, v.foto, v.tipo, v.descripcion),
     onSuccess: (_r, v) => {
       qc.invalidateQueries({ queryKey: ['evidencias', v.activoId] })
       qc.invalidateQueries({ queryKey: ['activo', v.activoId] }) // historial

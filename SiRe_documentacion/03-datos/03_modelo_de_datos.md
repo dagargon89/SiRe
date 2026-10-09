@@ -91,6 +91,7 @@ erDiagram
     evidencias {
         int id PK
         int activo_id FK
+        enum tipo
         varchar archivo
         varchar descripcion
         int subido_por FK
@@ -113,7 +114,7 @@ erDiagram
 - **asignaciones** — Resguardo de largo plazo. Vigente si `revocada_en IS NULL`. Índice parcial de unicidad lógico: un activo tiene a lo sumo una asignación vigente (garantizado por la lógica transaccional + índice de apoyo).
 - **prestamos** — Cesión temporal. Activo si `devuelto_en IS NULL`. Un activo no puede tener dos préstamos activos (lógica + índice).
 - **movimientos** — Bitácora **append-only**: sin `updated_at`, sin `deleted_at`. Historial inmutable. Tipo `evidencia` al agregar o eliminar una foto.
-- **evidencias** — Fotos del equipo y sus accesorios. Los archivos viven en disco del servidor (`writable/evidencias/`, fuera del webroot; `{archivo}` + miniatura `{nombre}_t.jpg`); la tabla guarda solo el nombre. Se sirven solo por la API con sesión; no aparecen en la ficha pública del QR.
+- **evidencias** — Fotos del equipo y sus accesorios, clasificadas por `tipo` (equipo, accesorio, daño). Los archivos viven en disco del servidor (`writable/evidencias/`, fuera del webroot; `{archivo}` + miniatura `{nombre}_t.jpg`); la tabla guarda solo el nombre. Se sirven solo por la API con sesión; no aparecen en la ficha pública del QR.
 - **secuencias_codigo** — Contador correlativo por (categoria_id, organizacion_id) para el código físico, bloqueado por fila en la transacción de alta.
 - **avisos_prestamo** — Idempotencia de notificaciones: un aviso por (prestamo_id, tipo).
 
@@ -292,6 +293,7 @@ CREATE TABLE movimientos (
 CREATE TABLE evidencias (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     activo_id   INT UNSIGNED NOT NULL,
+    tipo        ENUM('equipo','accesorio','dano') NOT NULL DEFAULT 'equipo',
     archivo     VARCHAR(100) NOT NULL,                 -- {32 hex}.jpg; miniatura {32 hex}_t.jpg
     descripcion VARCHAR(255) NULL,
     ancho       SMALLINT UNSIGNED NOT NULL,

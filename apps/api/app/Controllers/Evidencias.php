@@ -25,6 +25,7 @@ class Evidencias extends ApiController
         return [
             'id'          => (int) $e['id'],
             'activo_id'   => (int) $e['activo_id'],
+            'tipo'        => $e['tipo'],
             'descripcion' => $e['descripcion'],
             'ancho'       => (int) $e['ancho'],
             'alto'        => (int) $e['alto'],
@@ -52,7 +53,7 @@ class Evidencias extends ApiController
         return $this->ok(array_map(fn ($e) => $this->presentar($e), $rows));
     }
 
-    /** POST /activos/{id}/evidencias — administrador. multipart: foto, descripcion? */
+    /** POST /activos/{id}/evidencias — administrador. multipart: foto, tipo, descripcion? */
     public function create(int $activoId): ResponseInterface
     {
         $file = $this->request->getFile('foto');
@@ -67,6 +68,7 @@ class Evidencias extends ApiController
             $evidencia = $this->service()->subir(
                 $activoId,
                 $file->getTempName(),
+                (string) ($this->request->getPost('tipo') ?? ''),
                 $this->request->getPost('descripcion'),
                 (int) $this->actor()['id'],
             );
