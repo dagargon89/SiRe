@@ -126,12 +126,6 @@ export function AppShell() {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-[58px] flex-none bg-surface border-b border-border flex items-center gap-3.5 px-[22px]">
           <button type="button" aria-label="Abrir menú" onClick={() => setDrawer(true)} className="md:hidden size-9 rounded-md border border-border text-ink">☰</button>
-          <input
-            type="search"
-            placeholder="Buscar activo por código, nombre o serie…"
-            aria-label="Buscador global de activos"
-            className="w-full max-w-[340px] h-[38px] px-3.5 rounded-[7px] border border-border bg-bg text-ink text-[13px] outline-none focus-visible:outline-2 focus-visible:outline-accent"
-          />
           <div className="flex-1" />
           <button
             onClick={() => setTheme(toggleTheme())}
