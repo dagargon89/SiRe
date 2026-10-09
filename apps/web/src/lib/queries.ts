@@ -177,6 +177,43 @@ export function useMantenimiento() {
   })
 }
 
+// ─── Evidencias ───────────────────────────────────────────────────
+export function useEvidencias(activoId: number) {
+  return useQuery({ queryKey: ['evidencias', activoId], queryFn: () => api.listarEvidencias(activoId) })
+}
+
+/** Imagen de una evidencia como blob (requiere el token; no se puede usar un <img src> directo). */
+export function useImagenEvidencia(id: number, miniatura: boolean) {
+  return useQuery({
+    queryKey: ['evidencia-img', id, miniatura],
+    queryFn: () => api.descargarEvidencia(id, miniatura),
+    staleTime: Infinity, // el archivo de una evidencia nunca cambia
+  })
+}
+
+export function useSubirEvidencia() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { activoId: number; foto: File; descripcion?: string }) =>
+      api.subirEvidencia(v.activoId, v.foto, v.descripcion),
+    onSuccess: (_r, v) => {
+      qc.invalidateQueries({ queryKey: ['evidencias', v.activoId] })
+      qc.invalidateQueries({ queryKey: ['activo', v.activoId] }) // historial
+    },
+  })
+}
+
+export function useEliminarEvidencia() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: number; activoId: number }) => api.eliminarEvidencia(v.id),
+    onSuccess: (_r, v) => {
+      qc.invalidateQueries({ queryKey: ['evidencias', v.activoId] })
+      qc.invalidateQueries({ queryKey: ['activo', v.activoId] })
+    },
+  })
+}
+
 // ─── Resguardos ───────────────────────────────────────────────────
 function invalidarActivo(qc: ReturnType<typeof useQueryClient>, activoId: number) {
   qc.invalidateQueries({ queryKey: ['activos'] })

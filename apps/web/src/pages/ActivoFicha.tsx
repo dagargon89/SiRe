@@ -7,6 +7,7 @@ import { Select } from '../components/Select'
 import { DatePicker } from '../components/DatePicker'
 import { Modal } from '../components/Modal'
 import { EstadoActivoBadge } from '../components/Badge'
+import { ActivoEvidencias } from './ActivoEvidencias'
 import { useAuth } from '../lib/auth'
 import { useToast } from '../lib/toast'
 import { api } from '../lib/apiClient'
@@ -18,7 +19,7 @@ import type { CondicionActivo } from '../lib/api'
 
 const TIPO_LABEL: Record<string, string> = {
   alta: 'Alta', asignacion: 'Asignación', revocacion: 'Revocación', prestamo: 'Préstamo',
-  devolucion: 'Devolución', transferencia: 'Transferencia', mantenimiento: 'Mantenimiento', baja: 'Baja',
+  devolucion: 'Devolución', transferencia: 'Transferencia', mantenimiento: 'Mantenimiento', baja: 'Baja', evidencia: 'Evidencia',
 }
 
 type ModalTipo = null | 'baja' | 'asignar' | 'transferir' | 'revocar' | 'prestar'
@@ -130,6 +131,8 @@ export function ActivoFicha() {
           </>
         )}
       </div>
+
+      <ActivoEvidencias activoId={activoId} esAdmin={esAdmin} />
 
       <h2 className="text-lg font-semibold text-ink mb-3">Historial</h2>
       <Card className="p-4">

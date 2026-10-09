@@ -45,6 +45,13 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     $routes->patch('activos/(:num)/mantenimiento', 'Activos::mantenimiento/$1', $admin);
     $routes->get('activos/(:num)/etiqueta', 'Activos::etiqueta/$1', $admin);
 
+    // Evidencias fotográficas (no se exponen en la ficha pública del QR)
+    $routes->get('activos/(:num)/evidencias', 'Evidencias::index/$1', $auth);
+    $routes->post('activos/(:num)/evidencias', 'Evidencias::create/$1', $admin);
+    // Las imágenes llevan su propio cubo de rate limit: una galería pide varias a la vez.
+    $routes->get('evidencias/(:num)/archivo', 'Evidencias::archivo/$1', ['filter' => ['auth', 'aprobado', 'throttle:600,60,img']]);
+    $routes->delete('evidencias/(:num)', 'Evidencias::delete/$1', $admin);
+
     // Usuarios
     $routes->get('usuarios', 'Usuarios::index', $admin);
     $routes->post('usuarios', 'Usuarios::create', $admin);

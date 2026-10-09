@@ -1,0 +1,5 @@
+# SiRe — respaldo diario de BD + evidencias. 09:00 UTC = 02:00/03:00 en Ciudad Juárez.
+# Sin CRON_TZ: el cron de Debian/Ubuntu lo ignora (ver deploy/crontab).
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 9 * * * root /usr/local/bin/sire-backup.sh >> /var/backups/sire-backup.log 2>&1

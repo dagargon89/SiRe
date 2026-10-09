@@ -5,10 +5,12 @@ export function Modal({
   title,
   onClose,
   children,
+  wide = false,
 }: {
   title: string
   onClose: () => void
   children: ReactNode
+  wide?: boolean
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -27,7 +29,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="bg-surface border border-border rounded-[10px] shadow-[var(--sire-shadow)] w-full max-w-md p-6"
+        className={`bg-surface border border-border rounded-[10px] shadow-[var(--sire-shadow)] w-full ${wide ? 'max-w-3xl' : 'max-w-md'} p-6 max-h-[90vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold text-ink mb-4">{title}</h2>

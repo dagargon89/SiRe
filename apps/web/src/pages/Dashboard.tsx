@@ -6,7 +6,7 @@ import type { EstadoActivo, Movimiento } from '../lib/api'
 
 const TIPO_LABEL: Record<string, string> = {
   alta: 'Alta', asignacion: 'Asignación', revocacion: 'Revocación', prestamo: 'Préstamo',
-  devolucion: 'Devolución', transferencia: 'Transferencia', mantenimiento: 'Mantenimiento', baja: 'Baja',
+  devolucion: 'Devolución', transferencia: 'Transferencia', mantenimiento: 'Mantenimiento', baja: 'Baja', evidencia: 'Evidencia',
 }
 
 const ESTADO_LABEL: Record<EstadoActivo, string> = {

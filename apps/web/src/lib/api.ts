@@ -11,7 +11,7 @@ export type EstadoActivo = 'disponible' | 'asignado' | 'prestado' | 'mantenimien
 export type EstadoPrestamo = 'activo' | 'vencido' | 'devuelto'
 export type TipoMovimiento =
   | 'alta' | 'asignacion' | 'revocacion' | 'prestamo'
-  | 'devolucion' | 'transferencia' | 'mantenimiento' | 'baja'
+  | 'devolucion' | 'transferencia' | 'mantenimiento' | 'baja' | 'evidencia'
 
 export interface Paginado<T> { data: T[]; meta: { page: number; per_page: number; total: number } }
 
@@ -31,6 +31,11 @@ export interface Activo {
   factura_enlace?: string | null        // enlace de Google Drive; solo lo reciben administrador y auditor
   qr_url?: string
   condicion: CondicionActivo; estado: EstadoActivo; creado_en: string
+}
+/** Foto de evidencia del activo (equipo/accesorios). La imagen se pide con descargarEvidencia. */
+export interface Evidencia {
+  id: number; activo_id: number; descripcion?: string | null
+  ancho: number; alto: number; subido_por: number; creado_en: string
 }
 export interface Asignacion {
   id: number; activo_id: number; usuario_id: number
@@ -119,6 +124,11 @@ export interface ApiClient {
   obtenerActivoPublico(id: number): Promise<ActivoPublico>  // público: destino del QR, sin login
   editarActivo(id: number, data: Partial<Activo>): Promise<Activo>
   descargarEtiqueta(id: number): Promise<Blob>               // código + QR imprimible
+  // evidencias fotográficas (ver: todos; subir/eliminar: administrador; no van en la ficha pública)
+  listarEvidencias(activoId: number): Promise<Evidencia[]>
+  subirEvidencia(activoId: number, foto: File, descripcion?: string): Promise<Evidencia>
+  descargarEvidencia(id: number, miniatura?: boolean): Promise<Blob> // JPEG
+  eliminarEvidencia(id: number): Promise<void>
   darDeBaja(id: number, motivo: string): Promise<Activo>
   cambiarMantenimiento(id: number, enMantenimiento: boolean): Promise<Activo>
   // asignaciones
@@ -259,6 +269,16 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
     obtenerActivoPublico: (id) => request('GET', `/activos/${id}/publico`),
     editarActivo: (id, data) => request('PUT', `/activos/${id}`, data),
     descargarEtiqueta: (id) => request('GET', `/activos/${id}/etiqueta`, undefined, 'blob'),
+    listarEvidencias: (activoId) => request('GET', `/activos/${activoId}/evidencias`),
+    subirEvidencia: (activoId, foto, descripcion) => {
+      const fd = new FormData()
+      fd.append('foto', foto)
+      if (descripcion) fd.append('descripcion', descripcion)
+      return request('POST', `/activos/${activoId}/evidencias`, fd)
+    },
+    descargarEvidencia: (id, miniatura) =>
+      request('GET', `/evidencias/${id}/archivo${miniatura ? '?miniatura=1' : ''}`, undefined, 'blob'),
+    eliminarEvidencia: (id) => request('DELETE', `/evidencias/${id}`, undefined, 'void'),
     darDeBaja: (id, motivo) => request('PATCH', `/activos/${id}/baja`, { motivo }),
     cambiarMantenimiento: (id, enMantenimiento) =>
       request('PATCH', `/activos/${id}/mantenimiento`, { en_mantenimiento: enMantenimiento }),

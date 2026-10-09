@@ -49,6 +49,15 @@ UTC, una entrada `CRON_TZ=America/Ciudad_Juarez` + `0 7 * * *` dispara a las 07:
 en Juárez. Por eso `deploy/crontab` usa horas UTC (`0 13,14`) más un wrapper que descarta la
 corrida que no cae a las 07:00 locales; así el horario de verano tampoco desfasa el envío.
 
+## 5b. Respaldo diario (BD + evidencias)
+
+Las fotos de evidencias viven en `apps/api/writable/evidencias/` (fuera del webroot; el usuario de
+PHP-FPM debe poder escribir ahí). Instalar `deploy/sire-backup.sh` en `/usr/local/bin/sire-backup.sh`
+(modo 755) y `deploy/crontab-backup` en `/etc/cron.d/sire-backup` (modo 644, `root:root`). Corre a
+las 09:00 UTC (madrugada en Juárez), deja `sire_db_*.sql.gz` y `sire_evidencias_*.tar.gz` en
+`/var/backups/sire` y conserva 30 días. Al estar en el mismo disco, conviene además copiarlos fuera
+del servidor.
+
 ## 6. Opción Docker
 
 - `apps/api/Dockerfile` — imagen PHP-FPM de producción.

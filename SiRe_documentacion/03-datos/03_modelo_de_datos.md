@@ -25,6 +25,7 @@ erDiagram
     activos ||--o{ prestamos : "tiene"
     usuarios ||--o{ prestamos : "presta/recibe"
     activos ||--o{ movimientos : "historial"
+    activos ||--o{ evidencias : "fotos"
     prestamos ||--o{ avisos_prestamo : "notifica"
 
     organizaciones {
@@ -87,6 +88,14 @@ erDiagram
         int organizacion_id FK
         int ultimo
     }
+    evidencias {
+        int id PK
+        int activo_id FK
+        varchar archivo
+        varchar descripcion
+        int subido_por FK
+        datetime creado_en
+    }
     avisos_prestamo {
         int id PK
         int prestamo_id FK
@@ -103,7 +112,8 @@ erDiagram
 - **activos** — Inventario. `codigo` único `CAT-ORG-###`. `factura_enlace`: enlace de Google Drive a la factura (solo https de drive/docs.google.com; visible solo para administrador y auditor). `qr_archivo_ref` reservado (el QR se genera bajo demanda). `condicion` y `estado` como ENUM. Columnas de auditoría.
 - **asignaciones** — Resguardo de largo plazo. Vigente si `revocada_en IS NULL`. Índice parcial de unicidad lógico: un activo tiene a lo sumo una asignación vigente (garantizado por la lógica transaccional + índice de apoyo).
 - **prestamos** — Cesión temporal. Activo si `devuelto_en IS NULL`. Un activo no puede tener dos préstamos activos (lógica + índice).
-- **movimientos** — Bitácora **append-only**: sin `updated_at`, sin `deleted_at`. Historial inmutable.
+- **movimientos** — Bitácora **append-only**: sin `updated_at`, sin `deleted_at`. Historial inmutable. Tipo `evidencia` al agregar o eliminar una foto.
+- **evidencias** — Fotos del equipo y sus accesorios. Los archivos viven en disco del servidor (`writable/evidencias/`, fuera del webroot; `{archivo}` + miniatura `{nombre}_t.jpg`); la tabla guarda solo el nombre. Se sirven solo por la API con sesión; no aparecen en la ficha pública del QR.
 - **secuencias_codigo** — Contador correlativo por (categoria_id, organizacion_id) para el código físico, bloqueado por fila en la transacción de alta.
 - **avisos_prestamo** — Idempotencia de notificaciones: un aviso por (prestamo_id, tipo).
 
@@ -263,7 +273,7 @@ CREATE TABLE prestamos (
 CREATE TABLE movimientos (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     activo_id       INT UNSIGNED NOT NULL,
-    tipo            ENUM('alta','asignacion','revocacion','prestamo','devolucion','transferencia','mantenimiento','baja') NOT NULL,
+    tipo            ENUM('alta','asignacion','revocacion','prestamo','devolucion','transferencia','mantenimiento','baja','evidencia') NOT NULL,
     de_usuario_id   INT UNSIGNED NULL,
     a_usuario_id    INT UNSIGNED NULL,
     de_org_id       INT UNSIGNED NULL,
@@ -276,6 +286,23 @@ CREATE TABLE movimientos (
     INDEX idx_mov_creado (creado_en),
     CONSTRAINT fk_mov_activo FOREIGN KEY (activo_id) REFERENCES activos(id) ON DELETE RESTRICT,
     CONSTRAINT fk_mov_actor FOREIGN KEY (realizado_por) REFERENCES usuarios(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- EVIDENCIAS  (fotos del activo; archivo en disco local, fuera del webroot)
+CREATE TABLE evidencias (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    activo_id   INT UNSIGNED NOT NULL,
+    archivo     VARCHAR(100) NOT NULL,                 -- {32 hex}.jpg; miniatura {32 hex}_t.jpg
+    descripcion VARCHAR(255) NULL,
+    ancho       SMALLINT UNSIGNED NOT NULL,
+    alto        SMALLINT UNSIGNED NOT NULL,
+    bytes       INT UNSIGNED NOT NULL,
+    subido_por  INT UNSIGNED NOT NULL,
+    creado_en   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_evidencia_archivo (archivo),
+    INDEX idx_evidencia_activo (activo_id),
+    CONSTRAINT fk_evidencia_activo FOREIGN KEY (activo_id) REFERENCES activos(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_evidencia_usuario FOREIGN KEY (subido_por) REFERENCES usuarios(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 9) AVISOS_PRESTAMO  (idempotencia de notificaciones)

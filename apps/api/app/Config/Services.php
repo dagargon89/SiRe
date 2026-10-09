@@ -9,6 +9,7 @@ use App\Auth\KreaitFirebaseAdmin;
 use App\Auth\TokenVerifier;
 use App\Notificaciones\EmailMailer;
 use App\Notificaciones\Mailer;
+use App\Services\Evidencias\AlmacenEvidencias;
 use CodeIgniter\Config\BaseService;
 use Kreait\Firebase\Contract\Auth as FirebaseAuth;
 use Kreait\Firebase\Factory;
@@ -68,6 +69,18 @@ class Services extends BaseService
         }
 
         return static::firebaseFactory()->createAuth();
+    }
+
+    /** Archivos de evidencias fotográficas (disco local, fuera del webroot). */
+    public static function almacenEvidencias($getShared = true): AlmacenEvidencias
+    {
+        if ($getShared) {
+            return static::getSharedInstance('almacenEvidencias');
+        }
+
+        $dir = (string) (env('evidencias.dir') ?? '');
+
+        return new AlmacenEvidencias($dir !== '' ? $dir : WRITEPATH . 'evidencias');
     }
 
     /** Verificador de ID token de Firebase (envuelve firebaseAuth para poder mockear). */
