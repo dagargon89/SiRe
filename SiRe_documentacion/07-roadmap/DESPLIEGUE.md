@@ -40,8 +40,14 @@ Servir `apps/web/dist` con Nginx (ver `deploy/nginx-web.conf`).
 
 ## 5. Cron de alertas
 
-Instalar `deploy/crontab` (o su equivalente): ejecuta `php spark resguardos:alertas-prestamos`
-diariamente a las 07:00 en TZ `America/Ciudad_Juarez`.
+Instalar `deploy/crontab` en `/etc/cron.d/sire-alertas` (modo 644, dueño `root:root`) junto con el
+wrapper `/usr/local/bin/sire-alertas.sh` (modo 755) que el propio archivo documenta: ejecuta
+`php spark resguardos:alertas-prestamos` diariamente a las **07:00 hora de Ciudad Juárez**.
+
+⚠️ **No usar `CRON_TZ`** — el cron de Debian/Ubuntu lo ignora en silencio. Si el server corre en
+UTC, una entrada `CRON_TZ=America/Ciudad_Juarez` + `0 7 * * *` dispara a las 07:00 **UTC** = 01:00
+en Juárez. Por eso `deploy/crontab` usa horas UTC (`0 13,14`) más un wrapper que descarta la
+corrida que no cae a las 07:00 locales; así el horario de verano tampoco desfasa el envío.
 
 ## 6. Opción Docker
 

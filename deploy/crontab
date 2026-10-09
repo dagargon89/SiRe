@@ -1,4 +1,25 @@
-# SiRe — cron de alertas de préstamos (TZ America/Ciudad_Juarez).
-# Ejecuta todos los días a las 07:00. Ajusta la ruta de PHP y del proyecto.
-CRON_TZ=America/Ciudad_Juarez
-0 7 * * * www-data cd /var/www/sire/apps/api && /usr/bin/php spark resguardos:alertas-prestamos >> /var/log/sire-alertas.log 2>&1
+# SiRe — cron de alertas de préstamos. Objetivo: 07:00 hora Ciudad Juárez.
+#
+# ⚠️ NO usar CRON_TZ: el cron de Debian/Ubuntu (verificado en 3.0pl1-184ubuntu2)
+# lo ignora en silencio. La versión anterior de este archivo tenía
+# `CRON_TZ=America/Ciudad_Juarez` + `0 7 * * *` y corría a las 07:00 UTC =
+# 01:00 en Juárez (los correos llegaban a la 1am).
+#
+# Los horarios de aquí son UTC. Ciudad Juárez sí observa DST (franja
+# fronteriza), así que 07:00 local cae a las 13:00 UTC en verano (MDT, UTC-6)
+# y a las 14:00 UTC en invierno (MST, UTC-7). Se dispara en ambas y el wrapper
+# /usr/local/bin/sire-alertas.sh descarta la que no cae a las 07:00 locales:
+#
+#   #!/bin/bash
+#   set -euo pipefail
+#   HORA_OBJETIVO='07'
+#   HORA_LOCAL="$(TZ=America/Ciudad_Juarez date +%H)"
+#   [ "$HORA_LOCAL" = "$HORA_OBJETIVO" ] || exit 0
+#   cd /var/www/SiRe/apps/api
+#   exec /usr/bin/php spark resguardos:alertas-prestamos
+#
+# Para cambiar la hora: editar HORA_OBJETIVO en el wrapper Y las dos horas UTC
+# de abajo (hora_local + 6 y hora_local + 7).
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 13,14 * * * www-data /usr/local/bin/sire-alertas.sh >> /var/www/SiRe/apps/api/writable/logs/alertas-cron.log 2>&1
