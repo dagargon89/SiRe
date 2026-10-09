@@ -136,6 +136,8 @@ final class Sprint5DashboardTest extends CIUnitTestCase
         $r = $this->withHeaders($this->h('a1'))->get('api/v1/reportes/inventario');
         $r->assertStatus(200);
         $this->assertStringContainsString('%PDF', (string) $r->getBody());
+        // Hoja carta horizontal: 792 × 612 pt.
+        $this->assertMatchesRegularExpression('#/MediaBox \[0 0 792\.0+ 612\.0+\]#', (string) $r->getBody());
 
         // Auditor sí; custodio no.
         $this->withHeaders($this->h('au1'))->get('api/v1/reportes/inventario')->assertStatus(200);
@@ -149,5 +151,6 @@ final class Sprint5DashboardTest extends CIUnitTestCase
         $r = $this->withHeaders($this->h('au1'))->get('api/v1/reportes/movimientos?desde=2026-01-01&hasta=2027-01-01');
         $r->assertStatus(200);
         $this->assertStringContainsString('%PDF', (string) $r->getBody());
+        $this->assertMatchesRegularExpression('#/MediaBox \[0 0 792\.0+ 612\.0+\]#', (string) $r->getBody());
     }
 }
