@@ -65,6 +65,7 @@ $routes->group('api/v1', static function (RouteCollection $routes): void {
     $routes->patch('usuarios/(:num)/aprobar', 'Usuarios::aprobar/$1', $admin);
     $routes->patch('usuarios/(:num)/rechazar', 'Usuarios::rechazar/$1', $admin);
     $routes->patch('usuarios/(:num)/desactivar', 'Usuarios::desactivar/$1', $admin);
+    $routes->patch('usuarios/(:num)/reactivar', 'Usuarios::reactivar/$1', $admin);
 
     // Asignaciones (resguardos)
     $routes->post('asignaciones', 'Asignaciones::create', $admin);

@@ -53,6 +53,7 @@
 | PUT | `/api/v1/usuarios/{id}` | administrador | Edita |
 | PATCH | `/api/v1/usuarios/{id}/rol` | administrador | Cambia rol (no a sí mismo; solo admin otorga admin) |
 | PATCH | `/api/v1/usuarios/{id}/desactivar` | administrador | Revoca tokens + inactiva (no a sí mismo) |
+| PATCH | `/api/v1/usuarios/{id}/reactivar` | administrador | Reactiva un usuario aprobado desactivado (vuelve a iniciar sesión) |
 | GET | `/api/v1/usuarios/{id}/carta` | administrador · titular | Carta responsiva PDF |
 | GET | `/api/v1/usuarios/{id}/activos` | administrador · titular | Equipos vigentes a cargo (resguardos activos) |
 | GET | `/api/v1/usuarios/{id}/prestamos` | administrador · titular | Préstamos vigentes del usuario (como prestatario) |
@@ -224,6 +225,7 @@ export interface ApiClient {
   editarUsuario(id: number, data: Partial<Pick<Usuario, 'nombre' | 'organizacion_id'>>): Promise<Usuario>;
   cambiarRol(id: number, rol: Rol): Promise<Usuario>;
   desactivarUsuario(id: number): Promise<void>;
+  reactivarUsuario(id: number): Promise<void>;
   descargarCarta(id: number): Promise<Blob>;                  // PDF; admin o titular
   activosACargo(id: number): Promise<ActivoACargo[]>;         // resguardos vigentes; admin o titular (añadido tras Sprint 6)
   prestamosDeUsuario(id: number): Promise<PrestamoDeUsuario[]>; // préstamos vigentes; admin o titular (añadido tras Sprint 6)

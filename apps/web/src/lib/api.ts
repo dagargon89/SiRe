@@ -115,6 +115,7 @@ export interface ApiClient {
   aprobarUsuario(id: number, data: { rol: Rol; organizacion_id: number }): Promise<Usuario>
   rechazarUsuario(id: number): Promise<Usuario>
   desactivarUsuario(id: number): Promise<void>
+  reactivarUsuario(id: number): Promise<void>
   descargarCarta(id: number): Promise<Blob>                  // PDF; admin o titular
   activosACargo(id: number): Promise<ActivoACargo[]>         // resguardos vigentes; admin o titular
   prestamosDeUsuario(id: number): Promise<PrestamoDeUsuario[]> // préstamos vigentes; admin o titular
@@ -260,6 +261,7 @@ export function createApiClient(opts: ApiClientOptions): ApiClient {
     aprobarUsuario: (id, data) => request('PATCH', `/usuarios/${id}/aprobar`, data),
     rechazarUsuario: (id) => request('PATCH', `/usuarios/${id}/rechazar`, undefined),
     desactivarUsuario: (id) => request('PATCH', `/usuarios/${id}/desactivar`, undefined, 'void'),
+    reactivarUsuario: (id) => request('PATCH', `/usuarios/${id}/reactivar`, undefined, 'void'),
     descargarCarta: (id) => request('GET', `/usuarios/${id}/carta`, undefined, 'blob'),
     activosACargo: (id) => request('GET', `/usuarios/${id}/activos`),
     prestamosDeUsuario: (id) => request('GET', `/usuarios/${id}/prestamos`),

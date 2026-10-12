@@ -191,4 +191,42 @@ final class Sprint1CatalogosTest extends CIUnitTestCase
         $this->seeInDatabase('usuarios', ['id' => $custId, 'is_active' => 0]);
         $this->assertContains('c1', $this->firebase->revocados);
     }
+
+    public function testAdminReactivaUsuarioDesactivado(): void
+    {
+        $this->actuarComo('custodio', 'c1');
+        $custId = $this->idDe('c1');
+        $h      = $this->actuarComo('administrador', 'a1');
+        $this->withBodyFormat('json')->withHeaders($h)->patch('api/v1/usuarios/' . $custId . '/desactivar')->assertStatus(204);
+
+        $this->withBodyFormat('json')->withHeaders($h)->patch('api/v1/usuarios/' . $custId . '/reactivar')->assertStatus(204);
+        $this->seeInDatabase('usuarios', ['id' => $custId, 'is_active' => 1]);
+
+        // Ya activo: 409.
+        $r = $this->withBodyFormat('json')->withHeaders($h)->patch('api/v1/usuarios/' . $custId . '/reactivar');
+        $r->assertStatus(409);
+        $r->assertJSONFragment(['error' => 'ya_activo']);
+    }
+
+    public function testNoSeReactivaUnUsuarioRechazado(): void
+    {
+        $this->actuarComo('custodio', 'c1');
+        $custId = $this->idDe('c1');
+        $this->db->table('usuarios')->where('id', $custId)->update(['estado' => 'rechazado', 'is_active' => 0]);
+        $h = $this->actuarComo('administrador', 'a1');
+
+        $r = $this->withBodyFormat('json')->withHeaders($h)->patch('api/v1/usuarios/' . $custId . '/reactivar');
+        $r->assertStatus(409);
+        $r->assertJSONFragment(['error' => 'estado_invalido']);
+        $this->seeInDatabase('usuarios', ['id' => $custId, 'is_active' => 0]);
+    }
+
+    public function testSoloAdminReactiva(): void
+    {
+        $this->actuarComo('custodio', 'c1');
+        $custId = $this->idDe('c1');
+        $this->db->table('usuarios')->where('id', $custId)->update(['is_active' => 0]);
+        $aud = $this->actuarComo('auditor', 'au1');
+        $this->withBodyFormat('json')->withHeaders($aud)->patch('api/v1/usuarios/' . $custId . '/reactivar')->assertStatus(403);
+    }
 }

@@ -122,6 +122,14 @@ export function useDesactivarUsuario() {
   })
 }
 
+export function useReactivarUsuario() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.reactivarUsuario(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['usuarios'] }),
+  })
+}
+
 
 // ─── Activos ──────────────────────────────────────────────────────
 export function useActivos(filtros: FiltrosActivos) {

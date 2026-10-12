@@ -305,4 +305,29 @@ class Usuarios extends ApiController
 
         return $this->noContent();
     }
+
+    /**
+     * PATCH /usuarios/{id}/reactivar — administrador. Vuelve a activar un
+     * usuario aprobado que fue desactivado. En Firebase no hay nada que
+     * deshacer: la desactivación solo revocó sus sesiones, así que el usuario
+     * vuelve a entrar iniciando sesión de nuevo.
+     */
+    public function reactivar(int $id): ResponseInterface
+    {
+        $model   = $this->model();
+        $usuario = $model->find($id);
+        if ($usuario === null) {
+            return $this->error(404, 'no_existe', 'Usuario no encontrado.');
+        }
+        if ($usuario['estado'] !== 'aprobado') {
+            return $this->error(409, 'estado_invalido', 'Solo se puede reactivar un usuario aprobado.');
+        }
+        if ((int) $usuario['is_active'] === 1) {
+            return $this->error(409, 'ya_activo', 'El usuario ya está activo.');
+        }
+
+        $model->update($id, ['is_active' => 1]);
+
+        return $this->noContent();
+    }
 }

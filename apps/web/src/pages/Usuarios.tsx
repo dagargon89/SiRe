@@ -12,7 +12,7 @@ import { useToast } from '../lib/toast'
 import { api } from '../lib/apiClient'
 import { ApiError, type FiltroUsuarios, type Rol, type Usuario } from '../lib/api'
 import {
-  useUsuarios, useCrearUsuario, useCambiarRol, useDesactivarUsuario,
+  useUsuarios, useCrearUsuario, useCambiarRol, useDesactivarUsuario, useReactivarUsuario,
   useOrganizaciones, useAprobarUsuario, useRechazarUsuario,
 } from '../lib/queries'
 
@@ -45,6 +45,7 @@ export function Usuarios() {
   const orgs = useOrganizaciones()
   const cambiarRol = useCambiarRol()
   const desactivar = useDesactivarUsuario()
+  const reactivar = useReactivarUsuario()
   const rechazar = useRechazarUsuario()
   const [nuevo, setNuevo] = useState(false)
   const [aprobando, setAprobando] = useState<Usuario | null>(null)
@@ -153,13 +154,26 @@ export function Usuarios() {
                           >
                             Carta
                           </button>
-                          <button
-                            className="text-danger hover:underline disabled:opacity-40 disabled:no-underline"
-                            disabled={esYo || !u.is_active}
-                            onClick={() => void desactivar.mutate(u.id)}
-                          >
-                            Desactivar
-                          </button>
+                          {u.is_active ? (
+                            <button
+                              className="text-danger hover:underline disabled:opacity-40 disabled:no-underline"
+                              disabled={esYo || desactivar.isPending}
+                              onClick={() => void desactivar.mutate(u.id)}
+                            >
+                              Desactivar
+                            </button>
+                          ) : (
+                            <button
+                              className="text-accent hover:underline disabled:opacity-40 disabled:no-underline"
+                              disabled={reactivar.isPending}
+                              onClick={() => reactivar.mutate(u.id, {
+                                onSuccess: () => toast.exito(`${u.nombre} reactivado`),
+                                onError: (err) => toast.error(err instanceof ApiError ? err.message : 'No se pudo reactivar el usuario.'),
+                              })}
+                            >
+                              Reactivar
+                            </button>
+                          )}
                         </>
                       )}
                     </td>
