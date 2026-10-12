@@ -134,6 +134,7 @@ final class Sprint2ActivosTest extends CIUnitTestCase
         $body = json_decode($r->getJSON(), true);
         $this->assertSame('CMP-AVZ-001', $body['activo']['codigo']);
         $this->assertSame('alta', $body['historial'][0]['tipo']);
+        $this->assertSame('Administrador', $body['historial'][0]['realizado_por_nombre']);
     }
 
     public function testBajaBloqueadaSiAsignado(): void

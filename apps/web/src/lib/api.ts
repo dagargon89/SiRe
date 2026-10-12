@@ -79,7 +79,8 @@ export interface Movimiento {
   activo_codigo?: string | null            // enriquecido en ultimos_movimientos del dashboard
   activo_nombre?: string | null
   de_usuario_id?: number | null; a_usuario_id?: number | null
-  realizado_por: number; notas?: string; creado_en: string
+  realizado_por: number; realizado_por_nombre?: string | null  // nombre de quien lo hizo (ficha del activo)
+  notas?: string; creado_en: string
 }
 export interface ResumenDashboard {
   activos_por_estado: Record<EstadoActivo, number>

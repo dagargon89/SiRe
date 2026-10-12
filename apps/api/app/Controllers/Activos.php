@@ -110,18 +110,22 @@ class Activos extends ApiController
             return $this->error(404, 'no_existe', 'Activo no encontrado.');
         }
 
-        $historial = (new MovimientoModel())
-            ->where('activo_id', $id)->orderBy('creado_en', 'ASC')->orderBy('id', 'ASC')->findAll();
+        $historial = $this->model()->db->table('movimientos m')
+            ->select('m.*, u.nombre AS realizado_por_nombre')
+            ->join('usuarios u', 'u.id = m.realizado_por', 'left')
+            ->where('m.activo_id', $id)->orderBy('m.creado_en', 'ASC')->orderBy('m.id', 'ASC')
+            ->get()->getResultArray();
 
         $historial = array_map(static fn ($m) => [
-            'id'            => (int) $m['id'],
-            'activo_id'     => (int) $m['activo_id'],
-            'tipo'          => $m['tipo'],
-            'de_usuario_id' => $m['de_usuario_id'] !== null ? (int) $m['de_usuario_id'] : null,
-            'a_usuario_id'  => $m['a_usuario_id'] !== null ? (int) $m['a_usuario_id'] : null,
-            'realizado_por' => (int) $m['realizado_por'],
-            'notas'         => $m['notas'],
-            'creado_en'     => $m['creado_en'],
+            'id'                    => (int) $m['id'],
+            'activo_id'             => (int) $m['activo_id'],
+            'tipo'                  => $m['tipo'],
+            'de_usuario_id'         => $m['de_usuario_id'] !== null ? (int) $m['de_usuario_id'] : null,
+            'a_usuario_id'          => $m['a_usuario_id'] !== null ? (int) $m['a_usuario_id'] : null,
+            'realizado_por'         => (int) $m['realizado_por'],
+            'realizado_por_nombre'  => $m['realizado_por_nombre'],
+            'notas'                 => $m['notas'],
+            'creado_en'             => $m['creado_en'],
         ], $historial);
 
         $vigente = $this->model()->db->table('asignaciones a')

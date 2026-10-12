@@ -8,6 +8,7 @@ import { DatePicker } from '../components/DatePicker'
 import { Modal } from '../components/Modal'
 import { EstadoActivoBadge } from '../components/Badge'
 import { ActivoEvidencias } from './ActivoEvidencias'
+import { ActivoHistorial } from './ActivoHistorial'
 import { useAuth } from '../lib/auth'
 import { useToast } from '../lib/toast'
 import { api } from '../lib/apiClient'
@@ -16,11 +17,6 @@ import {
   useAsignar, useRevocar, useTransferir, useUsuarios, usePrestar,
 } from '../lib/queries'
 import type { CondicionActivo } from '../lib/api'
-
-const TIPO_LABEL: Record<string, string> = {
-  alta: 'Alta', asignacion: 'Asignación', revocacion: 'Revocación', prestamo: 'Préstamo',
-  devolucion: 'Devolución', transferencia: 'Transferencia', mantenimiento: 'Mantenimiento', baja: 'Baja', evidencia: 'Evidencia',
-}
 
 type ModalTipo = null | 'baja' | 'asignar' | 'transferir' | 'revocar' | 'prestar'
 
@@ -54,98 +50,92 @@ export function ActivoFicha() {
   }
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-6xl">
       <button onClick={() => navigate('/activos')} className="text-accent hover:underline text-sm mb-3">
         ← Volver a activos
       </button>
 
-      <div className="flex items-center justify-between mb-4">
-        <div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between mb-5">
+        <div className="min-w-0">
           <h1 className="text-2xl font-semibold text-ink">{activo.nombre}</h1>
-          <p className="font-mono text-ink-muted">{activo.codigo}</p>
-        </div>
-        <EstadoActivoBadge estado={activo.estado} />
-      </div>
-
-      <Card className="p-6 grid grid-cols-2 gap-4 mb-4 text-sm">
-        <Dato k="Marca" v={activo.marca} />
-        <Dato k="Modelo" v={activo.modelo} />
-        <Dato k="Serie" v={activo.serie} />
-        <Dato k="Condición" v={activo.condicion} />
-        <Dato k="Proveedor" v={activo.proveedor} />
-        <Dato k="Factura" v={activo.factura_numero} />
-        {activo.factura_enlace && (
-          <div>
-            <div className="text-ink-muted">Archivo de factura</div>
-            <a href={activo.factura_enlace} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
-              Abrir en Drive ↗
-            </a>
+          <div className="flex flex-wrap items-center gap-3 mt-1">
+            <p className="font-mono text-ink-muted">{activo.codigo}</p>
+            <EstadoActivoBadge estado={activo.estado} />
           </div>
-        )}
-        {asignacion_vigente && (
-          <Dato
-            k="Custodio actual"
-            v={asignacion_vigente.usuario_nombre ?? nombreUsuario(asignacion_vigente.usuario_id)}
-          />
-        )}
-      </Card>
-
-      {activo.observaciones && (
-        <Card className="p-6 mb-4">
-          <h2 className="text-sm font-medium text-ink-muted mb-2">Observaciones</h2>
-          {/* HTML saneado en el servidor (SanitizadorHtml) antes de persistir. */}
-          <div className="sire-prose text-sm text-ink" dangerouslySetInnerHTML={{ __html: activo.observaciones }} />
-        </Card>
-      )}
-
-      <div className="flex flex-wrap gap-2 mb-6">
-        <Button variant="secondary" onClick={descargarEtiqueta}>Etiqueta (QR)</Button>
-        {esAdmin && (
-          <>
-            <Button variant="secondary" onClick={() => navigate(`/activos/${activoId}/editar`)}>Editar</Button>
-            {activo.estado === 'disponible' && (
-              <>
-                <Button onClick={() => setModal('asignar')}>Asignar</Button>
-                <Button variant="secondary" onClick={() => setModal('prestar')}>Prestar</Button>
-              </>
-            )}
-            {activo.estado === 'asignado' && (
-              <>
-                <Button onClick={() => setModal('transferir')}>Transferir</Button>
-                <Button variant="secondary" onClick={() => setModal('revocar')}>Revocar resguardo</Button>
-              </>
-            )}
-            {activo.estado === 'disponible' && (
-              <Button variant="secondary" onClick={() => void mant.mutate({ id: activoId, enMantenimiento: true })}>
-                A mantenimiento
-              </Button>
-            )}
-            {activo.estado === 'mantenimiento' && (
-              <Button variant="secondary" onClick={() => void mant.mutate({ id: activoId, enMantenimiento: false })}>
-                Salir de mantenimiento
-              </Button>
-            )}
-            {['disponible', 'mantenimiento'].includes(activo.estado) && (
-              <Button variant="danger" onClick={() => setModal('baja')}>Dar de baja</Button>
-            )}
-          </>
-        )}
+        </div>
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          <Button variant="secondary" onClick={descargarEtiqueta}>Etiqueta (QR)</Button>
+          {esAdmin && (
+            <>
+              <Button variant="secondary" onClick={() => navigate(`/activos/${activoId}/editar`)}>Editar</Button>
+              {activo.estado === 'disponible' && (
+                <>
+                  <Button onClick={() => setModal('asignar')}>Asignar</Button>
+                  <Button variant="secondary" onClick={() => setModal('prestar')}>Prestar</Button>
+                </>
+              )}
+              {activo.estado === 'asignado' && (
+                <>
+                  <Button onClick={() => setModal('transferir')}>Transferir</Button>
+                  <Button variant="secondary" onClick={() => setModal('revocar')}>Revocar resguardo</Button>
+                </>
+              )}
+              {activo.estado === 'disponible' && (
+                <Button variant="secondary" onClick={() => void mant.mutate({ id: activoId, enMantenimiento: true })}>
+                  A mantenimiento
+                </Button>
+              )}
+              {activo.estado === 'mantenimiento' && (
+                <Button variant="secondary" onClick={() => void mant.mutate({ id: activoId, enMantenimiento: false })}>
+                  Salir de mantenimiento
+                </Button>
+              )}
+              {['disponible', 'mantenimiento'].includes(activo.estado) && (
+                <Button variant="danger" onClick={() => setModal('baja')}>Dar de baja</Button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
-      <ActivoEvidencias activoId={activoId} esAdmin={esAdmin} />
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] items-start">
+        <div className="min-w-0">
+          <Card className="p-6 grid grid-cols-2 gap-4 mb-4 text-sm">
+            <Dato k="Marca" v={activo.marca} />
+            <Dato k="Modelo" v={activo.modelo} />
+            <Dato k="Serie" v={activo.serie} />
+            <Dato k="Condición" v={activo.condicion} />
+            <Dato k="Proveedor" v={activo.proveedor} />
+            <Dato k="Factura" v={activo.factura_numero} />
+            {activo.factura_enlace && (
+              <div>
+                <div className="text-ink-muted">Archivo de factura</div>
+                <a href={activo.factura_enlace} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+                  Abrir en Drive ↗
+                </a>
+              </div>
+            )}
+            {asignacion_vigente && (
+              <Dato
+                k="Custodio actual"
+                v={asignacion_vigente.usuario_nombre ?? nombreUsuario(asignacion_vigente.usuario_id)}
+              />
+            )}
+          </Card>
 
-      <h2 className="text-lg font-semibold text-ink mb-3">Historial</h2>
-      <Card className="p-4">
-        <ol className="space-y-3">
-          {historial.map((m) => (
-            <li key={m.id} className="flex gap-3 text-sm">
-              <span className="text-ink-muted whitespace-nowrap">{m.creado_en?.slice(0, 16).replace('T', ' ')}</span>
-              <span className="font-medium">{TIPO_LABEL[m.tipo] ?? m.tipo}</span>
-              {m.notas && <span className="text-ink-muted">— {m.notas}</span>}
-            </li>
-          ))}
-        </ol>
-      </Card>
+          {activo.observaciones && (
+            <Card className="p-6 mb-4">
+              <h2 className="text-sm font-medium text-ink-muted mb-2">Observaciones</h2>
+              {/* HTML saneado en el servidor (SanitizadorHtml) antes de persistir. */}
+              <div className="sire-prose text-sm text-ink" dangerouslySetInnerHTML={{ __html: activo.observaciones }} />
+            </Card>
+          )}
+
+          <ActivoEvidencias activoId={activoId} esAdmin={esAdmin} />
+        </div>
+
+        <ActivoHistorial historial={historial} />
+      </div>
 
       {modal === 'baja' && (
         <ModalMotivo
